@@ -75,10 +75,6 @@ while True:
 
 
 
-        os.chdir('Playlists')
-
-
-
         def spotify_to_youtube(playlistURL):
 
 
@@ -204,10 +200,13 @@ while True:
 
 
             for filename in os.listdir(os.path.dirname(__file__) + '\\Music_Cogs'):
-
+            
                 if filename.endswith('.py'):
-
+            
                     bot.load_extension(f'Music_Cogs.{filename[:-3]}')
+                    
+                    
+            os.chdir('Playlists')
 
 
 
