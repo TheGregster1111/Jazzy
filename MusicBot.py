@@ -16,6 +16,7 @@ import datetime
 import spotipy
 from spotipy import SpotifyClientCredentials
 
+print('Test file successfully run')
 
 try:
     discordIntents = discord.Intents.all()
