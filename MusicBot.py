@@ -39,7 +39,7 @@ try:
         'options': '-vn'
     }
 
-    os.chdir('source\\repos\\MusicBot\\Playlists')
+    os.chdir('Playlists')
 
     def spotify_to_youtube(playlistURL):
 
