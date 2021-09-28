@@ -599,8 +599,7 @@ try:
                 if len(queue[server.id]) == 0:
                     del(queue[server.id])
                     
-    print(MusicBotConfig.token)
-    #bot.run(MusicBotConfig.token)
+    bot.run(MusicBotConfig.token)
 
 except commands.errors.CommandNotFound: #Add any errors to ignore, some will not be ignored like CommandNotFound
     pass
