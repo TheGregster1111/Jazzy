@@ -599,7 +599,11 @@ try:
                 if len(queue[server.id]) == 0:
                     del(queue[server.id])
 
+    print('TEST 1')
+
     bot.run(MusicBotConfig.token)
+
+    print('TEST 2')
 
 except commands.errors.CommandNotFound: #Add any errors to ignore, some will not be ignored like CommandNotFound
     pass
