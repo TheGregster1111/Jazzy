@@ -17,6 +17,7 @@ import spotipy
 from spotipy import SpotifyClientCredentials
 
 print('Test file successfully run')
+print(os.getcwd())
 
 try:
     discordIntents = discord.Intents.all()
