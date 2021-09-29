@@ -78,7 +78,7 @@ class MainCog(commands.Cog):
 
         trackList = []
 
-
+        counter = 1
 
         for i in results["tracks"]["items"]:
 
@@ -111,6 +111,11 @@ class MainCog(commands.Cog):
 
 
                 trackList.append(i["track"]["name"] + " - " + nameString)
+                
+                counter += 1
+                
+                if counter == 10:
+                    break
 
 
 
