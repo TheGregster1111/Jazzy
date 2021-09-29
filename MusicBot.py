@@ -41,7 +41,7 @@ class MainCog(commands.Cog):
 
         self.playFromList.start()
 
-        for filename in os.listdir(os.path.dirname(__file__) + '/Music_Cogs'):
+        for filename in os.listdir(os.path.dirname(__file__) + 'Music_Cogs'):
 
             if filename.endswith('.py'):
 
