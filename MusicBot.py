@@ -873,11 +873,7 @@ class MainCog(commands.Cog):
 
                     await channel.connect()
 
-            await ctx.send(ctx.message.content[ctx.message.content.index(' ') + 1:])
-
             if re.match(r"https://open.spotify.com/playlist/(\S{34})", ctx.message.content[ctx.message.content.index(' ') + 1:]):
-
-                await ctx.send('True')
 
                 try:
 
@@ -1108,8 +1104,6 @@ class MainCog(commands.Cog):
 
 
                 voice_channel.play(discord.FFmpegPCMAudio(audio.url, **self.ffmpegPCM_options), after=lambda e: self.stop_playing(server))
-
-                print(self.queue[server.id][0])
 
                 await ctx.send('Now playing: {}'.format(urllib.parse.unquote(self.queue[server.id][0])))
 
