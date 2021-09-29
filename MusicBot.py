@@ -40,14 +40,14 @@ class MainCog(commands.Cog):
 
         self.playFromList.start()
 
-        for filename in os.listdir(os.path.dirname(__file__) + '\\Music_Cogs'):
+        for filename in os.listdir(os.path.dirname(__file__) + '/Music_Cogs'):
 
             if filename.endswith('.py'):
 
                 self.bot.load_extension(f'Music_Cogs.{filename[:-3]}')
 
         try:
-            os.chdir('source\\repos\\MusicBot')
+            os.chdir('source/repos/MusicBot')
         except:
             pass
 
@@ -429,7 +429,7 @@ class MainCog(commands.Cog):
 
 
 
-        file = open('{}\\{}'.format(ctx.channel.guild.id, playlist), "a")
+        file = open('{}/{}'.format(ctx.channel.guild.id, playlist), "a")
 
 
 
@@ -462,7 +462,7 @@ class MainCog(commands.Cog):
 
 
 
-        fileR = open('{}\\{}'.format(ctx.channel.guild.id, playlist), "r")
+        fileR = open('{}/{}'.format(ctx.channel.guild.id, playlist), "r")
 
 
 
@@ -470,7 +470,7 @@ class MainCog(commands.Cog):
 
         fileR.close()
 
-        file = open('{}\\{}'.format(ctx.channel.guild.id, playlist))
+        file = open('{}/{}'.format(ctx.channel.guild.id, playlist))
 
         for line in lines:
 
@@ -496,9 +496,9 @@ class MainCog(commands.Cog):
 
 
 
-        if os.stat('{}\\{}'.format(ctx.channel.guild.id, playlist)).st_size == 0:
+        if os.stat('{}/{}'.format(ctx.channel.guild.id, playlist)).st_size == 0:
 
-            os.remove('{}\\{}'.format(ctx.channel.guild.id, playlist))
+            os.remove('{}/{}'.format(ctx.channel.guild.id, playlist))
 
 
 
@@ -1112,3 +1112,4 @@ class MainCog(commands.Cog):
 
 def setup(bot):
     bot.add_cog(MainCog(bot))
+
