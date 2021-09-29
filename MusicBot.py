@@ -230,15 +230,6 @@ class MainCog(commands.Cog):
 
 
 
-    @tasks.loop(seconds=0.1)
-    async def shutDown(self):
-
-        if MusicBotConfig.shutdown is True:
-
-            sys.exit()
-
-
-
     @tasks.loop(seconds=5)
     async def playFromList(self):
 
@@ -1121,4 +1112,3 @@ class MainCog(commands.Cog):
 
 def setup(bot):
     bot.add_cog(MainCog(bot))
-
