@@ -127,7 +127,7 @@ class MainCog(commands.Cog):
 
             if self.looping[server.id] is False:
 
-                del(self.self.video_ids[server.id][0])
+                del(self.video_ids[server.id][0])
 
 
 
