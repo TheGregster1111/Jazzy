@@ -12,6 +12,7 @@ import discord.message
 import discord.voice_client
 
 from discord.ext import commands, tasks
+import discord_components
 from discord_components import Button, ButtonStyle
 
 import os
