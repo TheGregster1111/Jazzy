@@ -447,7 +447,7 @@ class MainCog(commands.Cog):
 
             try:
 
-                await ctx.send('Voice active: {}'.format(len(self.bot.voice_clients)))
+                await ctx.send('Voice active in servers: {}'.format(len(self.bot.voice_clients)))
 
             except:
 
