@@ -1,6 +1,7 @@
 import sys
 
 import discord
+from discord.ext.commands import bot
 
 import discord.member
 
@@ -20,8 +21,6 @@ import urllib.request
 
 from urllib.parse import urlencode, urlparse, urlunparse
 
-import urllib3
-
 import re
 
 import pafy
@@ -34,35 +33,35 @@ from spotipy import SpotifyClientCredentials
 
 print('Test file successfully run')
 
-try:
+class MainCog(commands.Cog):
 
-    discordIntents = discord.Intents.all()
+    def __init__(self, bot):
+        self.bot = bot
 
+        self.playFromList.start()
 
+        for filename in os.listdir(os.path.dirname(__file__) + '\\Music_Cogs'):
 
-    bot = commands.Bot(command_prefix=MusicBotConfig.prefix, intents=discordIntents)
+            if filename.endswith('.py'):
 
+                self.bot.load_extension(f'Music_Cogs.{filename[:-3]}')
 
+        try:
+            os.chdir('source\\repos\\MusicBot')
+        except:
+            pass
 
-    bot.remove_command('help')
-
-
+        os.chdir('Playlists')
 
     spotify = spotipy.Spotify(client_credentials_manager=SpotifyClientCredentials(MusicBotConfig.client_id, MusicBotConfig.client_secret))
 
-
-
     video_ids = {}
-
+    
     skips = {}
 
     queue = {}
 
     looping = {}
-
-    autoDisconnect = []
-
-
 
     ffmpegPCM_options = {
 
@@ -74,11 +73,9 @@ try:
 
 
 
-    def spotify_to_youtube(playlistURL):
+    def spotify_to_youtube(self, playlistURL):
 
-
-
-        results = spotify.playlist(playlist_id=playlistURL)
+        results = self.spotify.playlist(playlist_id=playlistURL)
 
 
 
@@ -124,29 +121,29 @@ try:
 
 
 
-    def stop_playing(server):
+    def stop_playing(self, server):
 
-        if looping.get(server.id):
+        if self.looping.get(server.id):
 
-            if looping[server.id] is False:
+            if self.looping[server.id] is False:
 
-                del(video_ids[server.id][0])
+                del(self.self.video_ids[server.id][0])
 
 
 
-                if len(video_ids[server.id]) == 0:
+                if len(self.video_ids[server.id]) == 0:
 
-                    del(video_ids[server.id])
+                    del(self.video_ids[server.id])
 
         else:
 
-            del(video_ids[server.id][0])
+            del(self.video_ids[server.id][0])
 
 
 
-            if len(video_ids[server.id]) == 0:
+            if len(self.video_ids[server.id]) == 0:
 
-                del(video_ids[server.id])
+                del(self.video_ids[server.id])
 
 
 
@@ -160,58 +157,10 @@ try:
 
                 print('Something went wrong after the song stopped playing at {}'.format(datetime.datetime.now()))
 
+    
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    @bot.event
-
-    async def on_ready():
-
-        playFromList.start()
-
-
-
-        for filename in os.listdir(os.path.dirname(__file__) + '\\Music_Cogs'):
-
-            if filename.endswith('.py'):
-
-                bot.load_extension(f'Music_Cogs.{filename[:-3]}')
-
-
-        os.chdir('Playlists')
-
-
-
-    @bot.event
-
-    async def on_voice_state_update(member, before, after):
+    @commands.Cog.listener()
+    async def on_voice_state_update(self, member, before, after):
 
         if after.channel is not None:
 
@@ -237,13 +186,13 @@ try:
 
         if before.channel is not None:
 
-            if bot.get_channel(before.channel.id).members == [] and before.channel.name == "Temp VC":
+            if self.bot.get_channel(before.channel.id).members == [] and before.channel.name == "Temp VC":
 
                 await before.channel.delete()
 
 
 
-        if before.channel and not member.id is bot.user.id and before.channel.guild.voice_client:
+        if before.channel and not member.id is self.bot.user.id and before.channel.guild.voice_client:
 
             if before.channel == before.channel.guild.voice_client.channel:
 
@@ -253,39 +202,36 @@ try:
 
 
 
-                    if queue.get(before.channel.guild.id):
+                    if self.queue.get(before.channel.guild.id):
 
-                        del(queue[before.channel.guild.id])
+                        del(self.queue[before.channel.guild.id])
 
-                    if video_ids.get(before.channel.guild.id):
+                    if self.video_ids.get(before.channel.guild.id):
 
-                        del(video_ids[before.channel.guild.id])
+                        del(self.video_ids[before.channel.guild.id])
 
-                    if looping.get(before.channel.guild.id):
+                    if self.looping.get(before.channel.guild.id):
 
-                        del(looping[before.channel.guild.id])
+                        del(self.looping[before.channel.guild.id])
 
 
 
-    @bot.event
-
-    async def on_guild_join(guild):
+    @commands.Cog.listener()
+    async def on_guild_join(self, guild):
 
         os.mkdir(str(guild.id), 'w')
 
 
 
-    @bot.event
-
-    async def on_guild_remove(guild):
+    @commands.Cog.listener()
+    async def on_guild_remove(self, guild):
 
         os.mkdir(str(guild.id), 'w')
 
 
 
     @tasks.loop(seconds=0.1)
-
-    async def shutDown():
+    async def shutDown(self):
 
         if MusicBotConfig.shutdown is True:
 
@@ -294,28 +240,27 @@ try:
 
 
     @tasks.loop(seconds=5)
+    async def playFromList(self):
 
-    async def playFromList():
+        for i in self.bot.voice_clients:
 
-        for i in bot.voice_clients:
-
-            if not i.is_playing() and video_ids.get(i.guild.id):
-
+            if not i.is_playing() and self.video_ids.get(i.guild.id):
 
 
-                song = pafy.new(video_ids[i.guild.id][0])
+
+                song = pafy.new(self.video_ids[i.guild.id][0])
 
 
 
                 try:
 
-                    del(queue[i.guild.id][0])
+                    del(self.queue[i.guild.id][0])
 
 
 
-                    if len(queue[i.guild.id]) == 0:
+                    if len(self.queue[i.guild.id]) == 0:
 
-                        del(queue[i.guild.id])
+                        del(self.queue[i.guild.id])
 
                 except:
 
@@ -325,13 +270,12 @@ try:
 
                 audio = song.getbestaudio()
 
-                i.guild.voice_client.play(discord.FFmpegPCMAudio(audio.url, **ffmpegPCM_options), after=lambda e: stop_playing(i.guild))
+                i.guild.voice_client.play(discord.FFmpegPCMAudio(audio.url, **self.ffmpegPCM_options), after=lambda e: self.stop_playing(i.guild))
 
 
 
-    @bot.command()
-
-    async def help(ctx):
+    @commands.command()
+    async def help(self, ctx):
 
         embedVar = discord.Embed(title="Commands", color=0x0e41b5)
 
@@ -341,9 +285,9 @@ try:
 
         embedVar.add_field(name='!fs !fskip !fastskip !forceskip', value='Instantly skip current song, only useable by someone with a role named DJ or an admin', inline=False)
 
-        embedVar.add_field(name='!queue !q', value='View the current queue', inline=False)
+        embedVar.add_field(name='!queue !q', value='View the current self.queue', inline=False)
 
-        embedVar.add_field(name='!remove !r', value='Remove the specified song from the queue, example: !remove 2', inline=False)
+        embedVar.add_field(name='!remove !r', value='Remove the specified song from the self.queue, example: !remove 2', inline=False)
 
         embedVar.add_field(name='!reset', value='Reset the bot if it is malfunctioning', inline=False)
 
@@ -351,7 +295,7 @@ try:
 
         embedVar.add_field(name='!continue !resume', value='Resume the song', inline=False)
 
-        embedVar.add_field(name='!loop', value='Starts or stops looping the song', inline=False)
+        embedVar.add_field(name='!loop', value='Starts or stops self.looping the song', inline=False)
 
         embedVar.add_field(name='Extra stuff', value='Try making a new voice channel named "Create VC" and connecting to it', inline=False)
 
@@ -359,9 +303,8 @@ try:
 
 
 
-    @bot.command()
-
-    async def reset(ctx):
+    @commands.command()
+    async def reset(self, ctx):
 
 
 
@@ -387,7 +330,7 @@ try:
 
         try:
 
-            del(queue[ctx.channel.guild.id])
+            del(self.queue[ctx.channel.guild.id])
 
         except:
 
@@ -395,7 +338,7 @@ try:
 
         try:
 
-            del(video_ids[ctx.channel.guild.id])
+            del(self.video_ids[ctx.channel.guild.id])
 
         except:
 
@@ -403,9 +346,8 @@ try:
 
 
 
-    @bot.command()
-
-    async def debug(ctx):
+    @commands.command()
+    async def debug(self, ctx):
 
         if ctx.author.id == 320837660900065291:
 
@@ -413,11 +355,11 @@ try:
 
             try:
 
-                embedVar = discord.Embed(title="Visible queue", color=0x0e41b5)
+                embedVar = discord.Embed(title="Visible self.queue", color=0x0e41b5)
 
                 embedVar.description = ''
 
-                for video in queue.get(ctx.channel.guild.id):
+                for video in self.queue.get(ctx.channel.guild.id):
 
                     embedVar.description += video.replace('+', ' ') + '\n'
 
@@ -431,11 +373,11 @@ try:
 
             try:
 
-                embedVar = discord.Embed(title="Hidden queue", color=0x0e41b5)
+                embedVar = discord.Embed(title="Hidden self.queue", color=0x0e41b5)
 
                 embedVar.description = ''
 
-                for video in video_ids.get(ctx.channel.guild.id):
+                for video in self.video_ids.get(ctx.channel.guild.id):
 
                     embedVar.description += video.replace('+', ' ') + '\n'
 
@@ -449,9 +391,9 @@ try:
 
             try:
 
-                if looping.get(ctx.channel.guild.id):
+                if self.looping.get(ctx.channel.guild.id):
 
-                    await ctx.send(looping[ctx.channel.guild.id])
+                    await ctx.send(self.looping[ctx.channel.guild.id])
 
                 else:
 
@@ -479,9 +421,8 @@ try:
 
 
 
-    @bot.command(aliases=['playlistadd', 'listadd'])
-
-    async def _playlistAdd(ctx):
+    @commands.command(aliases=['playlistadd', 'listadd'])
+    async def _playlistAdd(self, ctx):
 
 
 
@@ -513,9 +454,8 @@ try:
 
 
 
-    @bot.command(aliases=['playlistremove', 'listremove'])
-
-    async def _playlistRemove(ctx):
+    @commands.command(aliases=['playlistremove', 'listremove'])
+    async def _playlistRemove(self, ctx):
 
 
 
@@ -573,9 +513,8 @@ try:
 
 
 
-    @bot.command(aliases=['l', 'loop'])
-
-    async def _loop(ctx):
+    @commands.command(aliases=['l', 'loop'])
+    async def _loop(self, ctx):
 
 
 
@@ -613,27 +552,26 @@ try:
 
         try:
 
-            looping[ctx.channel.guild.id] = not looping[ctx.channel.guild.id]
+            self.looping[ctx.channel.guild.id] = not self.looping[ctx.channel.guild.id]
 
         except:
 
-            looping[ctx.channel.guild.id] = True
+            self.looping[ctx.channel.guild.id] = True
 
 
 
-        if looping[ctx.channel.guild.id] is True:
+        if self.looping[ctx.channel.guild.id] is True:
 
             await ctx.send('Looping')
 
         else:
 
-            await ctx.send('No longer looping')
+            await ctx.send('No longer self.looping')
 
 
 
-    @bot.command()
-
-    async def pause(ctx):
+    @commands.command()
+    async def pause(self, ctx):
 
         if not ctx.author.bot:
 
@@ -653,9 +591,8 @@ try:
 
 
 
-    @bot.command(aliases=['continue', 'resume'])
-
-    async def _resume(ctx):
+    @commands.command(aliases=['continue', 'resume'])
+    async def _resume(self, ctx):
 
         if not ctx.author.bot:
 
@@ -675,11 +612,10 @@ try:
 
 
 
-    @bot.command(aliases=['q', 'queue'])
+    @commands.command(aliases=['q', 'queue'])
+    async def _queue(self, ctx):
 
-    async def _queue(ctx):
-
-        if queue.get(ctx.channel.guild.id):
+        if self.queue.get(ctx.channel.guild.id):
 
 
 
@@ -687,7 +623,7 @@ try:
 
             embedVar.description = ''
 
-            for video in queue.get(ctx.channel.guild.id):
+            for video in self.queue.get(ctx.channel.guild.id):
 
                 embedVar.description += video.replace('+', ' ') + '\n'
 
@@ -695,9 +631,8 @@ try:
 
 
 
-    @bot.command(aliases=['s', 'skip'])
-
-    async def _skip(ctx):
+    @commands.command(aliases=['s', 'skip'])
+    async def _skip(self, ctx):
 
         if not ctx.author.bot:
 
@@ -715,31 +650,31 @@ try:
 
             try:
 
-                skips[server.id] += 1
+                self.skips[server.id] += 1
 
             except:
 
-                skips[server.id] = 1
+                self.skips[server.id] = 1
 
 
 
-            if skips[server.id] >= (len(server.voice_client.channel.members)) - 1 / 2:
+            if self.skips[server.id] >= (len(server.voice_client.channel.members)) - 1 / 2:
 
                 server.voice_client.stop()
 
                 await ctx.send('Skipping')
 
-                del(skips[server.id])
+                del(self.skips[server.id])
 
 
 
-                del(video_ids[ctx.channel.guild.id][0])
+                del(self.video_ids[ctx.channel.guild.id][0])
 
 
 
-                if len(video_ids[ctx.channel.guild.id]) == 0:
+                if len(self.video_ids[ctx.channel.guild.id]) == 0:
 
-                    del(video_ids[ctx.channel.guild.id])
+                    del(self.video_ids[ctx.channel.guild.id])
 
 
 
@@ -753,17 +688,17 @@ try:
 
                 await ctx.send('Skipping')
 
-                del(skips[server.id])
+                del(self.skips[server.id])
 
 
 
-                del(video_ids[ctx.channel.guild.id][0])
+                del(self.video_ids[ctx.channel.guild.id][0])
 
 
 
-                if len(video_ids[ctx.channel.guild.id]) == 0:
+                if len(self.video_ids[ctx.channel.guild.id]) == 0:
 
-                    del(video_ids[ctx.channel.guild.id])
+                    del(self.video_ids[ctx.channel.guild.id])
 
 
 
@@ -773,13 +708,12 @@ try:
 
             else:
 
-                await ctx.send('{}/{}'.format(skips[server.id], round((len(server.voice_client.channel.members)) - 1 / 2)))
+                await ctx.send('{}/{}'.format(self.skips[server.id], round((len(server.voice_client.channel.members)) - 1 / 2)))
 
 
 
-    @bot.command(aliases=['fs', 'fskip', 'fastskip', 'forceskip'])
-
-    async def _fskip(ctx):
+    @commands.command(aliases=['fs', 'fskip', 'fastskip', 'forceskip'])
+    async def _fskip(self, ctx):
 
         if not ctx.author.bot:
 
@@ -811,11 +745,11 @@ try:
 
 
 
-            if len(video_ids[i.guild.id]) <= 1:
+            if len(self.video_ids[i.guild.id]) <= 1:
 
-                del(video_ids[i.guild.id])
+                del(self.video_ids[i.guild.id])
 
-                del(queue[i.guild.id])
+                del(self.queue[i.guild.id])
 
 
 
@@ -823,9 +757,8 @@ try:
 
 
 
-    @bot.command(aliases=['r', 'remove'])
-
-    async def _remove(ctx):
+    @commands.command(aliases=['r', 'remove'])
+    async def _remove(self, ctx):
 
         if not ctx.author.bot:
 
@@ -849,13 +782,13 @@ try:
 
 
 
-            if queue.get(server.id):
+            if self.queue.get(server.id):
 
-                del(queue[server.id][index - 1])
+                del(self.queue[server.id][index - 1])
 
-            if video_ids.get(server.id):
+            if self.video_ids.get(server.id):
 
-                del(video_ids[server.id][index - 1])
+                del(self.video_ids[server.id][index - 1])
 
 
 
@@ -871,9 +804,8 @@ try:
 
 
 
-    @bot.command(aliases=['p', 'play'])
-
-    async def _play(ctx):
+    @commands.command(aliases=['p', 'play'])
+    async def _play(self, ctx):
 
 
 
@@ -949,7 +881,7 @@ try:
 
                 try:
 
-                    searchterms = spotify_to_youtube(ctx.message.content[ctx.message.content.index(' ') + 1:])
+                    searchterms = self.spotify_to_youtube(ctx.message.content[ctx.message.content.index(' ') + 1:])
 
                 except:
 
@@ -1021,11 +953,11 @@ try:
 
                     try:
 
-                        queue[server.id].append(re.findall(r'"title":{"runs":\[{"text":"([^"]+)', html.read().decode())[0])
+                        self.queue[server.id].append(re.findall(r'"title":{"runs":\[{"text":"([^"]+)', html.read().decode())[0])
 
                     except:
 
-                        queue[server.id] = [re.findall(r'"title":{"runs":\[{"text":"([^"]+)', html.read().decode())[0]]
+                        self.queue[server.id] = [re.findall(r'"title":{"runs":\[{"text":"([^"]+)', html.read().decode())[0]]
 
 
 
@@ -1035,11 +967,11 @@ try:
 
                     try:
 
-                        video_ids[server.id].append(re.findall(r"watch\?v=(\S{11})", html.read().decode())[0])
+                        self.video_ids[server.id].append(re.findall(r"watch\?v=(\S{11})", html.read().decode())[0])
 
                     except:
 
-                        video_ids[server.id] = [re.findall(r"watch\?v=(\S{11})", html.read().decode())[0]]
+                        self.video_ids[server.id] = [re.findall(r"watch\?v=(\S{11})", html.read().decode())[0]]
 
 
 
@@ -1065,15 +997,15 @@ try:
 
                 try:
 
-                    queue[server.id].extend(re.findall(r'"title":{"runs":\[{"text":"([^"]+)', html.read().decode()))
+                    self.queue[server.id].extend(re.findall(r'"title":{"runs":\[{"text":"([^"]+)', html.read().decode()))
 
                 except:
 
-                    queue[server.id] = ['a']
+                    self.queue[server.id] = ['a']
 
-                    queue[server.id].extend(re.findall(r'"title":{"runs":\[{"text":"([^"]+)', html.read().decode()))
+                    self.queue[server.id].extend(re.findall(r'"title":{"runs":\[{"text":"([^"]+)', html.read().decode()))
 
-                    del(queue[server.id][0])
+                    del(self.queue[server.id][0])
 
 
 
@@ -1083,19 +1015,19 @@ try:
 
                 try:
 
-                    video_ids[server.id].extend(re.findall(r"watch\?v=(\S{11})", html.read().decode()))
+                    self.video_ids[server.id].extend(re.findall(r"watch\?v=(\S{11})", html.read().decode()))
 
                 except:
 
-                    video_ids[server.id] = ['a']
+                    self.video_ids[server.id] = ['a']
 
-                    video_ids[server.id].extend(re.findall(r"watch\?v=(\S{11})", html.read().decode()))
+                    self.video_ids[server.id].extend(re.findall(r"watch\?v=(\S{11})", html.read().decode()))
 
-                    del(video_ids[server.id][0])
+                    del(self.video_ids[server.id][0])
 
 
 
-                song = pafy.new(video_ids[server.id][0])
+                song = pafy.new(self.video_ids[server.id][0])
 
 
 
@@ -1107,19 +1039,19 @@ try:
 
 
 
-                    voice_channel.play(discord.FFmpegPCMAudio(audio.url, **ffmpegPCM_options), after=lambda e: stop_playing(server))
+                    voice_channel.play(discord.FFmpegPCMAudio(audio.url, **self.ffmpegPCM_options), after=lambda e: self.stop_playing(server))
 
                     await ctx.send('Now playing from playlist: {}'.format(playList))
 
 
 
-                    del(queue[server.id][0])
+                    del(self.queue[server.id][0])
 
 
 
-                    if len(queue[server.id]) == 0:
+                    if len(self.queue[server.id]) == 0:
 
-                        del(queue[server.id])
+                        del(self.queue[server.id])
 
 
 
@@ -1135,11 +1067,11 @@ try:
 
                 try:
 
-                    queue[server.id].append(re.findall(r'"title":{"runs":\[{"text":"([^"]+)', html.read().decode())[0])
+                    self.queue[server.id].append(re.findall(r'"title":{"runs":\[{"text":"([^"]+)', html.read().decode())[0])
 
                 except:
 
-                    queue[server.id] = [re.findall(r'"title":{"runs":\[{"text":"([^"]+)', html.read().decode())[0]]
+                    self.queue[server.id] = [re.findall(r'"title":{"runs":\[{"text":"([^"]+)', html.read().decode())[0]]
 
 
 
@@ -1149,17 +1081,17 @@ try:
 
                 try:
 
-                    video_ids[server.id].append(re.findall(r"watch\?v=(\S{11})", html.read().decode())[0])
+                    self.video_ids[server.id].append(re.findall(r"watch\?v=(\S{11})", html.read().decode())[0])
 
                 except:
 
-                    video_ids[server.id] = [re.findall(r"watch\?v=(\S{11})", html.read().decode())[0]]
+                    self.video_ids[server.id] = [re.findall(r"watch\?v=(\S{11})", html.read().decode())[0]]
 
 
 
 
 
-            song = pafy.new(video_ids[server.id][0])
+            song = pafy.new(self.video_ids[server.id][0])
 
 
 
@@ -1175,29 +1107,24 @@ try:
 
 
 
-                voice_channel.play(discord.FFmpegPCMAudio(audio.url, **ffmpegPCM_options), after=lambda e: stop_playing(server))
+                voice_channel.play(discord.FFmpegPCMAudio(audio.url, **self.ffmpegPCM_options), after=lambda e: self.stop_playing(server))
 
-                print(queue[server.id][0])
+                print(self.queue[server.id][0])
 
-                await ctx.send('Now playing: {}'.format(urllib.parse.unquote(queue[server.id][0])))
-
-
-
-                del(queue[server.id][0])
+                await ctx.send('Now playing: {}'.format(urllib.parse.unquote(self.queue[server.id][0])))
 
 
 
-                if len(queue[server.id]) == 0:
-
-                    del(queue[server.id])
+                del(self.queue[server.id][0])
 
 
 
-    bot.run(MusicBotConfig.token)
+                if len(self.queue[server.id]) == 0:
 
+                    del(self.queue[server.id])
 
+    
 
-except Exception:
-
-    pass
+def setup(bot):
+    bot.add_cog(MainCog(bot))
 
