@@ -361,6 +361,16 @@ class MainCog(commands.Cog):
 
 
     @commands.command()
+    async def guilds(self, ctx):
+        if ctx.author.id == 320837660900065291:
+            message = ''
+            for i in self.bot.guilds:
+                message += i.name + '\n'
+
+            await ctx.send(message)
+
+
+    @commands.command()
     async def debug(self, ctx):
 
         if ctx.author.id == 320837660900065291:
@@ -407,11 +417,11 @@ class MainCog(commands.Cog):
 
                 if self.looping.get(ctx.channel.guild.id):
 
-                    await ctx.send(self.looping[ctx.channel.guild.id])
+                    await ctx.send('Looping: {}'.format(self.looping[ctx.channel.guild.id]))
 
                 else:
 
-                    await ctx.send(False)
+                    await ctx.send('Looping: False')
 
             except:
 
@@ -423,11 +433,21 @@ class MainCog(commands.Cog):
 
                 if ctx.channel.guild.voice_client:
 
-                    await ctx.send(ctx.channel.guild.voice_client.is_playing())
+                    await ctx.send('Voice active: {}'.format(ctx.channel.guild.voice_client.is_playing()))
 
                 else:
 
-                    await ctx.send(False)
+                    await ctx.send('Voice active: False')
+
+            except:
+
+                pass
+
+
+
+            try:
+
+                await ctx.send('Voice active: {}'.format(len(self.bot.voice_clients)))
 
             except:
 
