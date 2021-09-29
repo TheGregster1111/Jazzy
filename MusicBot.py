@@ -46,7 +46,7 @@ class MainCog(commands.Cog):
 
             if filename.endswith('.py'):
 
-                self.bot.load_extension(f'Music_Cogs.{filename[:-3]}')
+                self.bot.load_extension(f'/Music_Cogs.{filename[:-3]}')
 
         os.chdir('Playlists')
 
