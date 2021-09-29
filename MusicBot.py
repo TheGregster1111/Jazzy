@@ -47,11 +47,6 @@ class MainCog(commands.Cog):
 
                 self.bot.load_extension(f'Music_Cogs.{filename[:-3]}')
 
-        try:
-            os.chdir('source/repos/MusicBot')
-        except:
-            pass
-
         os.chdir('Playlists')
 
     spotify = spotipy.Spotify(client_credentials_manager=SpotifyClientCredentials(MusicBotConfig.client_id, MusicBotConfig.client_secret))
