@@ -12,6 +12,7 @@ import discord.message
 import discord.voice_client
 
 from discord.ext import commands, tasks
+from discord_components import Button, ButtonStyle
 
 import os
 
@@ -290,7 +291,29 @@ class MainCog(commands.Cog):
 
         embedVar.add_field(name='Extra stuff', value='Try making a new voice channel named "Create VC" and connecting to it', inline=False)
 
-        await ctx.send(embed=embedVar)
+        await ctx.send(
+            content = None,
+            embed = embedVar,
+            components=[
+            [
+            Button(
+                label = "Website",
+                style = ButtonStyle.URL,
+                url = 'http://gamebothosting.unaux.com/'
+            ),
+            Button(
+                label = "Discord",
+                style = ButtonStyle.grey,
+                url = 'https://discord.gg/qpP4CZABJx'
+            ),
+            Button(
+                label = "Invite",
+                style = ButtonStyle.grey,
+                url = 'https://discord.com/api/oauth2/authorize?client_id=887684182975840296&permissions=0&scope=bot'
+            )
+            ]
+            ]
+        )
 
 
 
