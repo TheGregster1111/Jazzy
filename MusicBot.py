@@ -840,7 +840,8 @@ class MainCog(commands.Cog):
 
 
     @commands.command(aliases=['p', 'play'])
-    async def _play(self, ctx):
+    @commands.cooldown(1.0, 10.0, commands.BucketType.guild)
+    async def _play(self, ctx, playlist = None):
 
 
 
@@ -911,9 +912,19 @@ class MainCog(commands.Cog):
             if re.match(r"https://open.spotify.com/playlist/(\S{34})", ctx.message.content[ctx.message.content.index(' ') + 1:]):
 
                 try:
-
                     searchterms = self.spotify_to_youtube(ctx.message.content[ctx.message.content.index(' ') + 1:])
 
+                    if self.queue.get(ctx.guild.id):
+                        if len(self.queue[ctx.guild.id]) + len(searchterms) >= 30:
+                            await ctx.send('Maximum queue size reached')
+
+                            searchterms = searchterms[:30 - len(self.queue[ctx.guild.id])]
+
+                    else:
+                        if len(searchterms) >= 30:
+                            await ctx.send('Maximum queue size reached')
+
+                            searchterms = searchterms[:30]
                 except:
 
                     await ctx.send('Invalid link')
@@ -1005,7 +1016,6 @@ class MainCog(commands.Cog):
                         self.video_ids[server.id] = [re.findall(r"watch\?v=(\S{11})", html.read().decode())[0]]
 
 
-
             #///////////////////////////Playlists below
 
 
@@ -1032,8 +1042,6 @@ class MainCog(commands.Cog):
 
                 except:
 
-                    self.queue[server.id] = ['a']
-
                     self.queue[server.id].extend(re.findall(r'"title":{"runs":\[{"text":"([^"]+)', html.read().decode()))
 
                     del(self.queue[server.id][0])
@@ -1049,8 +1057,6 @@ class MainCog(commands.Cog):
                     self.video_ids[server.id].extend(re.findall(r"watch\?v=(\S{11})", html.read().decode()))
 
                 except:
-
-                    self.video_ids[server.id] = ['a']
 
                     self.video_ids[server.id].extend(re.findall(r"watch\?v=(\S{11})", html.read().decode()))
 
@@ -1088,9 +1094,97 @@ class MainCog(commands.Cog):
 
             #/////////////////////Playlists ^
 
+            elif playlist:
 
+                server = ctx.message.guild
+
+                voice_channel = server.voice_client
+
+                channel = ctx.author.voice.channel
+
+
+
+                name = urllib.parse.quote_plus(ctx.message.content[ctx.message.content.index(' ') + 1:])
+
+
+
+                if server.voice_client == None:
+
+                    await channel.connect()
+
+                    voice_channel = server.voice_client
+
+
+
+                elif not server.voice_client.is_connected():
+
+                    await channel.connect()
+
+                    voice_channel = server.voice_client
+
+
+
+                if server.voice_client.channel != ctx.author.voice.channel:
+
+
+
+                    if len(server.voice_client.channel.members) > 1:
+
+                        await ctx.send('You have to be in the same voice channel')
+
+                        return
+
+                    else:
+
+                        server.voice_client.disconnect()
+
+                        await channel.connect()
+
+
+
+                for i in playlist:
+
+                    html = urllib.request.urlopen("https://www.youtube.com/results?search_query=" + i)
+
+                    try:
+
+                        self.queue[server.id].append(re.findall(r'"title":{"runs":\[{"text":"([^"]+)', html.read().decode())[0])
+
+                    except:
+
+                        self.queue[server.id] = [re.findall(r'"title":{"runs":\[{"text":"([^"]+)', html.read().decode())[0]]
+
+
+
+                    html = urllib.request.urlopen("https://www.youtube.com/results?search_query=" + i)
+
+
+
+                    try:
+
+                        self.video_ids[server.id].append(re.findall(r"watch\?v=(\S{11})", html.read().decode())[0])
+
+                    except:
+
+                        self.video_ids[server.id] = [re.findall(r"watch\?v=(\S{11})", html.read().decode())[0]]
+                    
 
             else:
+
+                if self.queue.get(ctx.guild.id): #//START
+
+                    if len(self.queue[ctx.guild.id]) >= 30:
+                        await ctx.send('Maximum queue size reached')
+
+                    if len(self.queue[ctx.guild.id]) + len(playlist) >= 30:
+                        await ctx.send('Maximum queue size reached')
+
+                        playlist = playlist[:len(self.queue[ctx.guild.id]) - len(playlist)] #//////FOR LATER
+                
+                    elif len(playlist) >= 30:
+                        await ctx.send('Maximum queue size reached')
+
+                        playlist = playlist[:30] #//END
 
                 html = urllib.request.urlopen("https://www.youtube.com/results?search_query=" + name)
 
@@ -1151,6 +1245,16 @@ class MainCog(commands.Cog):
                 if len(self.queue[server.id]) == 0:
 
                     del(self.queue[server.id])
+
+                if len(self.queue[ctx.guild.id]) >= 30:
+                    await ctx.send('Maximum queue size reached')
+
+                    self.queue = self.queue[:30]
+
+    @_play.error
+    async def _play_error(self, ctx, error):
+        if isinstance(error, commands.CommandOnCooldown):
+            await ctx.send('!play is on cooldown to avoid slowing down bot')
 
     
 
