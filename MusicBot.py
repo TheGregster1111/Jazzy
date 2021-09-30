@@ -1304,9 +1304,6 @@ class MainCog(commands.Cog):
                     video_ids[server.id] = [re.findall(r"watch\?v=(\S{11})", html.read().decode())[0]]
 
 
-            await ctx.send('Play song')
-
-
             song = pafy.new(video_ids[server.id][0])
 
 
