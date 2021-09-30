@@ -1032,7 +1032,7 @@ class MainCog(commands.Cog):
 
                     self.video_ids[server.id] = [re.findall(r"watch\?v=(\S{11})", html.read().decode())[0]]
                 
-                searchterms = searchterms[:1]
+                searchterms = searchterms[1:]
 
                 
                 thread = Thread(target = self.add_to_queue, args = (searchterms, server))
