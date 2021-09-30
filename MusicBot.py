@@ -1,37 +1,23 @@
 import sys
-
 import discord
 from discord.ext.commands import bot
-
 import discord.member
-
 import discord.channel
-
 import discord.message
-
 import discord.voice_client
-
 from discord.ext import commands, tasks
 import discord_components
 from discord_components import Button, ButtonStyle
-
 import os
-
 import MusicBotConfig
-
 import urllib.request
-
 from urllib.parse import urlencode, urlparse, urlunparse
-
 import re
-
 import pafy
-
 import datetime
-
 import spotipy
-
 from spotipy import SpotifyClientCredentials
+from threading import Thread
 
 print('Test file successfully run')
 
@@ -158,6 +144,41 @@ class MainCog(commands.Cog):
             if server.voice_client:
 
                 print('Something went wrong after the song stopped playing at {}'.format(datetime.datetime.now()))
+                
+                
+                
+    def add_to_queue(self, searchterms, server):
+
+        global video_ids
+        global queue
+
+        for i in searchterms:
+
+            i = urllib.parse.quote_plus(i)
+
+            html = urllib.request.urlopen("https://www.youtube.com/results?search_query=" + i)
+
+            try:
+
+                self.queue[server.id].append(re.findall(r'"title":{"runs":\[{"text":"([^"]+)', html.read().decode())[0])
+
+            except:
+
+                self.queue[server.id] = [re.findall(r'"title":{"runs":\[{"text":"([^"]+)', html.read().decode())[0]]
+
+
+
+            html = urllib.request.urlopen("https://www.youtube.com/results?search_query=" + i)
+
+            
+
+            try:
+
+                self.video_ids[server.id].append(re.findall(r"watch\?v=(\S{11})", html.read().decode())[0])
+
+            except:
+
+                self.video_ids[server.id] = [re.findall(r"watch\?v=(\S{11})", html.read().decode())[0]]
 
     
 
@@ -985,35 +1006,37 @@ class MainCog(commands.Cog):
 
 
 
-                for i in searchterms:
-
-                    i = urllib.parse.quote_plus(i)
-
-                    html = urllib.request.urlopen("https://www.youtube.com/results?search_query=" + i)
+                html = urllib.request.urlopen("https://www.youtube.com/results?search_query=" + urllib.parse.quote_plus(searchterms[0]))
 
 
 
-                    try:
+                try:
 
-                        self.queue[server.id].append(re.findall(r'"title":{"runs":\[{"text":"([^"]+)', html.read().decode())[0])
+                    self.queue[server.id].append(re.findall(r'"title":{"runs":\[{"text":"([^"]+)', html.read().decode())[0])
 
-                    except:
+                except:
 
-                        self.queue[server.id] = [re.findall(r'"title":{"runs":\[{"text":"([^"]+)', html.read().decode())[0]]
-
-
-
-                    html = urllib.request.urlopen("https://www.youtube.com/results?search_query=" + i)
+                    self.queue[server.id] = [re.findall(r'"title":{"runs":\[{"text":"([^"]+)', html.read().decode())[0]]
 
 
 
-                    try:
+                html = urllib.request.urlopen("https://www.youtube.com/results?search_query=" + urllib.parse.quote_plus(searchterms[0]))
 
-                        self.video_ids[server.id].append(re.findall(r"watch\?v=(\S{11})", html.read().decode())[0])
 
-                    except:
 
-                        self.video_ids[server.id] = [re.findall(r"watch\?v=(\S{11})", html.read().decode())[0]]
+                try:
+
+                    self.video_ids[server.id].append(re.findall(r"watch\?v=(\S{11})", html.read().decode())[0])
+
+                except:
+
+                    self.video_ids[server.id] = [re.findall(r"watch\?v=(\S{11})", html.read().decode())[0]]
+                
+                searchterms = searchterms[:1]
+
+                
+                thread = Thread(target = self.add_to_queue, args = (searchterms, server))
+                thread.start()
 
 
             #///////////////////////////Playlists below
