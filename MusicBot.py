@@ -150,8 +150,8 @@ class MainCog(commands.Cog):
 
         global video_ids
         global queue
-
-        print(searchterms)
+        
+        counter = 2
 
         for i in searchterms:
 
@@ -164,6 +164,9 @@ class MainCog(commands.Cog):
                 queue[server.id].append(urllib.parse.unquote(re.findall(r'"title":{"runs":\[{"text":"(.*?)"}\]', html.read().decode())[0]))
 
             except:
+                
+                if counter >= 2:
+                    return
                 
                 queue[server.id] = [urllib.parse.unquote(re.findall(r'"title":{"runs":\[{"text":"(.*?)"}\]', html.read().decode())[0])]
 
@@ -178,7 +181,10 @@ class MainCog(commands.Cog):
                 video_ids[server.id].append(re.findall(r"watch\?v=(\S{11})", html.read().decode())[0])
 
             except:
-
+                
+                if counter >= 2:
+                    return
+                
                 video_ids[server.id] = [re.findall(r"watch\?v=(\S{11})", html.read().decode())[0]]
 
 
