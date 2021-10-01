@@ -360,12 +360,12 @@ class MainCog(commands.Cog):
             ),
             Button(
                 label = "Discord",
-                style = ButtonStyle.grey,
+                style = ButtonStyle.URL,
                 url = 'https://discord.gg/qpP4CZABJx'
             ),
             Button(
                 label = "Invite",
-                style = ButtonStyle.grey,
+                style = ButtonStyle.URL,
                 url = 'https://discord.com/api/oauth2/authorize?client_id=887684182975840296&permissions=0&scope=bot'
             )
             ]
