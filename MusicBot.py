@@ -1257,15 +1257,15 @@ class MainCog(commands.Cog):
                     if len(queue[ctx.guild.id]) >= 30:
                         await ctx.send('Maximum queue size reached')
 
-                    if len(queue[ctx.guild.id]) + len(playlist) >= 30:
+                    if len(queue[ctx.guild.id]) + len(serverplaylist) >= 30:
                         await ctx.send('Maximum queue size reached')
 
-                        playlist = playlist[:len(queue[ctx.guild.id]) - len(playlist)] #//////FOR LATER
+                        serverplaylist = serverplaylist[:len(queue[ctx.guild.id]) - len(serverplaylist)] #//////FOR LATER
                 
-                    elif len(playlist) >= 30:
+                    elif len(serverplaylist) >= 30:
                         await ctx.send('Maximum queue size reached')
 
-                        playlist = playlist[:30] #//END
+                        serverplaylist = serverplaylist[:30] #//END
                         
 
                 html = urllib.request.urlopen("https://www.youtube.com/results?search_query=" + name)
