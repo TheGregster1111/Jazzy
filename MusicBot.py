@@ -8,7 +8,6 @@ from discord_components import Button, ButtonStyle
 import os
 import MusicBotConfig
 import urllib.request
-from urllib.parse import urlencode, urlparse, urlunparse
 import re
 import pafy
 import datetime
@@ -151,9 +150,11 @@ class MainCog(commands.Cog):
         global video_ids
         global queue
         
-        counter = 2
+        counter = 0
 
         for i in searchterms:
+
+            counter += 1
 
             i = urllib.parse.quote_plus(i)
 
@@ -511,21 +512,41 @@ class MainCog(commands.Cog):
 
 
 
-    @commands.command()
-    async def playlistplay(self, ctx):
+    @commands.command(aliases=['playlistplay', 'listplay'])
+    async def _playlistplay(self, ctx):
         global serverplaylist
 
         playlist = ctx.message.content[ctx.message.content.index(' ') + 1:]
 
-        ctx2 = ctx
-
         file = open('{}/{}'.format(str(ctx.channel.guild.id), playlist), 'r')
-        playlist = []
+        serverplaylist = []
         for line in file.readlines():
-            playlist.append(line)
+            serverplaylist.append(re.findall(r'"id":"{\[(.*?)\]}"', line)[0])
+
+        print(serverplaylist)
 
         await self._play(ctx)
 
+    @commands.command(aliases=['playlist', 'list'])
+    async def _playlist(self, ctx):
+        playlist = ctx.message.content[ctx.message.content.index(' ') + 1:]
+
+        file = open('{}/{}'.format(str(ctx.channel.guild.id), playlist), 'r')
+
+        lines = file.readlines()
+
+        file.close()
+
+        embedVar = discord.Embed(title="Server playlists", color=0x0e41b5)
+
+        embedVar.description = ''
+
+        for line in lines:
+
+            embedVar.description += re.findall(r'"title":"{\[(.*?)\]}"', line)[0].replace('|', '\|').replace('*', '\*').replace('~', '\~').replace('_', '\_') + '\n\n'
+
+
+        await ctx.send(embed=embedVar)
 
     @commands.command(aliases=['playlists', 'lists'])
     async def _playlists(self, ctx):
@@ -547,6 +568,17 @@ class MainCog(commands.Cog):
     @commands.command(aliases=['playlistadd', 'listadd'])
     async def _playlistAdd(self, ctx):
 
+        for i in ctx.author.roles:
+
+            if i.name.lower() == 'dj':
+
+                if not ctx.author.guild_permissions.administrator:
+
+                    return
+
+        if len(os.listdir(ctx.channel.guild.id)) >= 20:
+            await ctx.send('Maximum number of 20 playlists already reached')
+
         message = ctx.message.content[ctx.message.content.index(' ') + 1:]
 
         playlist = message[:message.index(' ')]
@@ -554,51 +586,82 @@ class MainCog(commands.Cog):
         message = urllib.parse.quote_plus(message[message.index(' ') + 1:])
 
         html = urllib.request.urlopen("https://www.youtube.com/results?search_query=" + message)
-
-        file = open('{}/{}'.format(ctx.channel.guild.id, playlist), "a")
-
-        file.write('{}\n'.format(re.findall(r"watch\?v=(\S{11})", html.read().decode())[0]))
+        
+        video_id = re.findall(r"watch\?v=(\S{11})", html.read().decode())[0]
 
         html = urllib.request.urlopen("https://www.youtube.com/results?search_query=" + message)
 
+        video_name = urllib.parse.unquote(re.findall(r'"title":{"runs":\[{"text":"(.*?)"}\]', html.read().decode())[0])
+
+        file = open('{}/{}'.format(ctx.channel.guild.id, playlist), "a")
+
+        file.write('"title":"{{[{}]}}", "id":"{{[{}]}}"\n'.format(video_name, video_id))
+
         file.close()
 
-        await ctx.send('`{}` added to server playlist `{}`'.format(urllib.parse.unquote(re.findall(r'"title":{"runs":\[{"text":"(.*?)"}\]', html.read().decode())[0]), playlist))
+        await ctx.send('`{}` added to server playlist `{}`'.format(video_name, playlist))
 
 
+
+    @commands.command(aliases=['removeplaylist', 'removelist'])
+    async def _RemovePlaylist(self, ctx):
+        for i in ctx.author.roles:
+
+            if i.name.lower() == 'dj':
+
+                if not ctx.author.guild_permissions.administrator:
+
+                    return
+
+        playlist = ctx.message.content[ctx.message.content.index(' ') + 1:]
+
+        try:        
+            os.remove('{}/{}'.format(ctx.channel.guild.id, playlist))
+        
+        except:
+            await ctx.send('Playlist {} could not be successfully deleted'.format(playlist))
+            return
+
+        await ctx.send('Playlist {} was successfully deleted'.format(playlist))
 
     @commands.command(aliases=['playlistremove', 'listremove'])
     async def _playlistRemove(self, ctx):
 
+        for i in ctx.author.roles:
 
+            if i.name.lower() == 'dj':
+
+                if not ctx.author.guild_permissions.administrator:
+
+                    return
 
         message = ctx.message.content[ctx.message.content.index(' ') + 1:]
 
-
-
         playlist = message[:message.index(' ')]
 
+        message = urllib.parse.quote_plus(message[message.index(' ') + 1:])
 
+        html = urllib.request.urlopen("https://www.youtube.com/results?search_query=" + message)
+        
+        video_id = re.findall(r"watch\?v=(\S{11})", html.read().decode())[0]
 
-        message = message[message.index(' ') + 1:]
+        html = urllib.request.urlopen("https://www.youtube.com/results?search_query=" + message)
 
-
+        video_name = urllib.parse.unquote(re.findall(r'"title":{"runs":\[{"text":"(.*?)"}\]', html.read().decode())[0])
 
         fileR = open('{}/{}'.format(ctx.channel.guild.id, playlist), "r")
-
-
 
         lines = fileR.readlines()
 
         fileR.close()
 
-        file = open('{}/{}'.format(ctx.channel.guild.id, playlist))
+        file = open('{}/{}'.format(ctx.channel.guild.id, playlist), 'w')
 
         for line in lines:
 
-            if line.strip("\n") != message:
+            print(line + ' ////////// ' + '"title":"{{[{}]}}", "id":"{{[{}]}}"\n'.format(video_name, video_id))
 
-
+            if '"title":"{{[{}]}}", "id":"{{[{}]}}"\n'.format(video_name, video_id) != line:
 
                 file.write(line)
 
@@ -610,7 +673,8 @@ class MainCog(commands.Cog):
 
 
 
-                message = None    
+                video_name = None
+                video_id = None
 
 
 
@@ -1009,8 +1073,6 @@ class MainCog(commands.Cog):
 
                     await ctx.send('Invalid link')
 
-
-
                 if ctx.author.voice == None:
 
                     await ctx.send('You are not in a voice channel')
@@ -1024,10 +1086,6 @@ class MainCog(commands.Cog):
                 voice_channel = server.voice_client
 
                 channel = ctx.author.voice.channel
-
-
-
-                name = urllib.parse.quote_plus(ctx.message.content[ctx.message.content.index(' ') + 1:])
 
 
 
@@ -1066,8 +1124,6 @@ class MainCog(commands.Cog):
 
 
                 html = urllib.request.urlopen("https://www.youtube.com/results?search_query=" + urllib.parse.quote_plus(searchterms[0]))
-
-
 
                 try:
 
@@ -1173,6 +1229,8 @@ class MainCog(commands.Cog):
 
             #/////////////////////Playlists ^
 
+
+
             elif serverplaylist is not None:
                 
                 server = ctx.message.guild
@@ -1270,8 +1328,6 @@ class MainCog(commands.Cog):
 
                 html = urllib.request.urlopen("https://www.youtube.com/results?search_query=" + name)
 
-
-
                 try:
 
                     queue[server.id].append(urllib.parse.unquote(re.findall(r'"title":{"runs":\[{"text":"(.*?)"}\]', html.read().decode())[0]))
@@ -1341,3 +1397,4 @@ class MainCog(commands.Cog):
 def setup(bot):
     bot.add_cog(MainCog(bot))
 
+    
