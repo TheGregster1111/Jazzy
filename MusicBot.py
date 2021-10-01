@@ -53,7 +53,7 @@ class MainCog(commands.Cog):
 
     global serverplaylist
 
-    playlist = None
+    serverplaylist = None
 
     ffmpegPCM_options = {
 
@@ -149,7 +149,7 @@ class MainCog(commands.Cog):
 
         global video_ids
         global queue
-        
+
         counter = 0
 
         for i in searchterms:
@@ -162,14 +162,14 @@ class MainCog(commands.Cog):
 
             try:
 
-                queue[server.id].append(urllib.parse.unquote(re.findall(r'"title":{"runs":\[{"text":"(.*?)"}\]', html.read().decode())[0]))
+                queue[server.id].append(re.findall(r'"title":{"runs":\[{"text":"(.*?)"}\]', html.read().decode())[0].replace('|', '\|').replace('*', '\*').replace('~', '\~').replace('_', '\_'))
 
             except:
                 
                 if counter >= 2:
                     return
-                
-                queue[server.id] = [urllib.parse.unquote(re.findall(r'"title":{"runs":\[{"text":"(.*?)"}\]', html.read().decode())[0])]
+
+                queue[server.id] = [re.findall(r'"title":{"runs":\[{"text":"(.*?)"}\]', html.read().decode())[0].replace('|', '\|').replace('*', '\*').replace('~', '\~').replace('_', '\_')]
 
 
 
@@ -182,10 +182,10 @@ class MainCog(commands.Cog):
                 video_ids[server.id].append(re.findall(r"watch\?v=(\S{11})", html.read().decode())[0])
 
             except:
-                
+
                 if counter >= 2:
                     return
-                
+
                 video_ids[server.id] = [re.findall(r"watch\?v=(\S{11})", html.read().decode())[0]]
 
 
@@ -344,10 +344,20 @@ class MainCog(commands.Cog):
         embedVar.add_field(name='!continue !resume', value='Resume the song', inline=False)
 
         embedVar.add_field(name='!loop', value='Starts or stops self.looping the song', inline=False)
+        
+        embedVar.add_field(name='!playlistplay !listplay', value='Use "!listplay `Playlist name`" to play songs from a server playlist', inline=False)
+
+        embedVar.add_field(name='!playlistadd !listadd', value='Use "!listadd `Playlist name` `Song name`" to add a song to a server playlist', inline=False)
+
+        embedVar.add_field(name='!playlistremove !listremove', value='Use "!listremove `Playlist name` `Song name`" to remove a song from a server playlist', inline=False)
+
+        embedVar.add_field(name='!removeplaylist !removelist', value='Use "!removelist `Playlist name`" to remove a server playlist', inline=False)
+
+        embedVar.add_field(name='!playlists !lists', value='View all server playlists', inline=False)
+
+        embedVar.add_field(name='!playlist !list', value='Use "!list `Playlist name`" to view all songs in specified playlist', inline=False)
 
         embedVar.add_field(name='Extra stuff', value='Try making a new voice channel named "Create VC" and connecting to it', inline=False)
-
-        #await ctx.send(embed=embedVar)
 
         await ctx.send(
             content = None,
@@ -1127,11 +1137,11 @@ class MainCog(commands.Cog):
 
                 try:
 
-                    queue[server.id].append(urllib.parse.unquote(re.findall(r'"title":{"runs":\[{"text":"(.*?)"}\]', html.read().decode())[0]))
+                    queue[server.id].append(re.findall(r'"title":{"runs":\[{"text":"(.*?)"}\]', html.read().decode())[0].replace('|', '\|').replace('*', '\*').replace('~', '\~').replace('_', '\_'))
 
                 except:
 
-                    queue[server.id] = [urllib.parse.unquote(re.findall(r'"title":{"runs":\[{"text":"(.*?)"}\]', html.read().decode())[0])]
+                    queue[server.id] = [re.findall(r'"title":{"runs":\[{"text":"(.*?)"}\]', html.read().decode())[0].replace('|', '\|').replace('*', '\*').replace('~', '\~').replace('_', '\_')]
 
 
 
@@ -1163,7 +1173,7 @@ class MainCog(commands.Cog):
 
 
 
-                playList = re.findall(r'"title":"([^"]+)', html.read().decode())[0]
+                playList = re.findall(r'"title":"(.*?)"}\]', html.read().decode())[0]
 
 
 
@@ -1173,11 +1183,11 @@ class MainCog(commands.Cog):
 
                 try:
 
-                    queue[server.id].extend(urllib.parse.unquote(re.findall(r'"title":{"runs":\[{"text":"(.*?)"}\]', html.read().decode())))
+                    queue[server.id].append(re.findall(r'"title":{"runs":\[{"text":"(.*?)"}\]', html.read().decode())[0].replace('|', '\|').replace('*', '\*').replace('~', '\~').replace('_', '\_'))
 
                 except:
 
-                    queue[server.id].extend(urllib.parse.unquote(re.findall(r'"title":{"runs":\[{"text":"(.*?)"}\]', html.read().decode())))
+                    queue[server.id] = [re.findall(r'"title":{"runs":\[{"text":"(.*?)"}\]', html.read().decode())[0].replace('|', '\|').replace('*', '\*').replace('~', '\~').replace('_', '\_')]
 
                     del(queue[server.id][0])
 
@@ -1285,11 +1295,11 @@ class MainCog(commands.Cog):
 
                     try:
 
-                        queue[server.id].append(urllib.parse.unquote(re.findall(r'"title":{"runs":\[{"text":"(.*?)"}\]', html.read().decode())[0]))
+                        queue[server.id].append(re.findall(r'"title":{"runs":\[{"text":"(.*?)"}\]', html.read().decode())[0].replace('|', '\|').replace('*', '\*').replace('~', '\~').replace('_', '\_'))
 
                     except:
 
-                        queue[server.id] = [urllib.parse.unquote(re.findall(r'"title":{"runs":\[{"text":"(.*?)"}\]', html.read().decode())[0])]
+                        queue[server.id] = [re.findall(r'"title":{"runs":\[{"text":"(.*?)"}\]', html.read().decode())[0].replace('|', '\|').replace('*', '\*').replace('~', '\~').replace('_', '\_')]
 
 
 
@@ -1330,11 +1340,11 @@ class MainCog(commands.Cog):
 
                 try:
 
-                    queue[server.id].append(urllib.parse.unquote(re.findall(r'"title":{"runs":\[{"text":"(.*?)"}\]', html.read().decode())[0]))
+                    queue[server.id].append(urllib.parse.unquote(re.findall(r'"title":{"runs":\[{"text":"(.*?)"}\]', html.read().decode())[0].replace('|', '\|').replace('*', '\*').replace('~', '\~').replace('_', '\_')))
 
                 except:
 
-                    queue[server.id] = [urllib.parse.unquote(re.findall(r'"title":{"runs":\[{"text":"(.*?)"}\]', html.read().decode())[0])]
+                    queue[server.id] = [urllib.parse.unquote(re.findall(r'"title":{"runs":\[{"text":"(.*?)"}\]', html.read().decode())[0].replace('|', '\|').replace('*', '\*').replace('~', '\~').replace('_', '\_'))]
 
 
 
@@ -1397,4 +1407,3 @@ class MainCog(commands.Cog):
 def setup(bot):
     bot.add_cog(MainCog(bot))
 
-    
