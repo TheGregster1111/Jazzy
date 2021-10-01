@@ -70,11 +70,7 @@ class MainCog(commands.Cog):
 
         results = self.spotify.playlist(playlist_id=playlistURL)
 
-
-
         trackList = []
-
-        counter = 1
 
         for i in results["tracks"]["items"]:
 
@@ -105,11 +101,6 @@ class MainCog(commands.Cog):
 
 
                 trackList.append(i["track"]["name"] + " - " + nameString)
-
-                counter += 1
-
-                if counter == 10:
-                    break
 
 
 
