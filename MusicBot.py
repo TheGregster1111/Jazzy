@@ -1117,11 +1117,11 @@ class MainCog(commands.Cog):
 
                 try:
 
-                    queue[server.id].extend(urllib.parse.unquote(re.findall(r'"title":{"runs":\[{"text":"(.*?)"}\]', html.read().decode()))
+                    queue[server.id].extend(urllib.parse.unquote(re.findall(r'"title":{"runs":\[{"text":"(.*?)"}\]', html.read().decode())))
 
                 except:
 
-                    queue[server.id].extend(urllib.parse.unquote(re.findall(r'"title":{"runs":\[{"text":"(.*?)"}\]', html.read().decode()))
+                    queue[server.id].extend(urllib.parse.unquote(re.findall(r'"title":{"runs":\[{"text":"(.*?)"}\]', html.read().decode())))
 
                     del(queue[server.id][0])
 
