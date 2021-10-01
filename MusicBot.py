@@ -52,7 +52,7 @@ class MainCog(commands.Cog):
 
     looping = {}
 
-    global playlist
+    global serverplaylist
 
     playlist = None
 
@@ -513,7 +513,7 @@ class MainCog(commands.Cog):
 
     @commands.command()
     async def playlistplay(self, ctx):
-        global playlist
+        global serverplaylist
 
         playlist = ctx.message.content[ctx.message.content.index(' ') + 1:]
 
@@ -551,25 +551,19 @@ class MainCog(commands.Cog):
 
         playlist = message[:message.index(' ')]
 
+        message = urllib.parse.quote_plus(message[message.index(' ') + 1:])
 
-
-        message = message[message.index(' ') + 1:]
-
-
+        html = urllib.request.urlopen("https://www.youtube.com/results?search_query=" + message)
 
         file = open('{}/{}'.format(ctx.channel.guild.id, playlist), "a")
 
+        file.write('{}\n'.format(re.findall(r"watch\?v=(\S{11})", html.read().decode())[0]))
 
-
-        file.write('{}\n'.format(message))
+        html = urllib.request.urlopen("https://www.youtube.com/results?search_query=" + message)
 
         file.close()
 
-
-
-        await ctx.send('Song added to server playlist')
-
-
+        await ctx.send('`{}` added to server playlist `{}`'.format(urllib.parse.unquote(re.findall(r'"title":{"runs":\[{"text":"(.*?)"}\]', html.read().decode())[0]), playlist))
 
 
 
@@ -930,7 +924,7 @@ class MainCog(commands.Cog):
     @commands.cooldown(1.0, 10.0, commands.BucketType.guild)
     async def _play(self, ctx):
 
-        global playlist
+        global serverplaylist
         global queue
         global video_ids
 
@@ -1179,7 +1173,7 @@ class MainCog(commands.Cog):
 
             #/////////////////////Playlists ^
 
-            elif playlist is not None:
+            elif serverplaylist is not None:
                 
                 server = ctx.message.guild
 
@@ -1227,7 +1221,7 @@ class MainCog(commands.Cog):
 
 
 
-                for i in playlist:
+                for i in serverplaylist:
 
                     html = urllib.request.urlopen("https://www.youtube.com/results?search_query=" + i)
 
@@ -1253,7 +1247,7 @@ class MainCog(commands.Cog):
 
                         video_ids[server.id] = [re.findall(r"watch\?v=(\S{11})", html.read().decode())[0]]
 
-                playlist = None
+                serverplaylist = None
                     
 
             else:
