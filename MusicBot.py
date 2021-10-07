@@ -286,6 +286,7 @@ class MainCog(commands.Cog):
 
     @tasks.loop(seconds=5)
     async def playFromList(self):
+        print('Looping and shiet rn')
 
         global queue
         global video_ids
