@@ -1397,7 +1397,7 @@ class MainCog(commands.Cog):
 
                 voice_channel.play(discord.FFmpegPCMAudio(audio.url, **self.ffmpegPCM_options), after=lambda e: self.stop_playing(server))
 
-                await ctx.send('Now playing: `{}`'.format(urllib.parse.unquote(queue[server.id][0])))
+                await ctx.send('Now playing: `{}`'.format(queue[server.id][0]))
 
 
 
@@ -1415,7 +1415,7 @@ class MainCog(commands.Cog):
                     queue = queue[:30]
 
             else:
-                await ctx.send('Added to queue: `{}`'.format(urllib.parse.unquote(queue[server.id][0])))
+                await ctx.send('Added to queue: `{}`'.format(queue[server.id][len(queue[server.id]) - 1]))
 
     @_play.error
     async def _play_error(self, ctx, error):
