@@ -430,11 +430,11 @@ class MainCog(commands.Cog):
     @commands.command()
     async def guilds(self, ctx):
         if ctx.author.id == 320837660900065291:
-            message = ''
+            message = '```'
             for i in self.bot.guilds:
-                message += i.name + '\n'
+                message += i.name + '  :  ' + i.owner.name + '\n'
 
-        await ctx.send(message)
+        await ctx.send(message + '\n\n\nServer count: {}```'.format(len(self.bot.guilds)))
 
 
     @commands.command()
@@ -520,6 +520,23 @@ class MainCog(commands.Cog):
             except:
 
                 pass
+            
+    @commands.command(aliases=['leave'])
+    async def _leave(self, ctx):
+
+        if not ctx.author.bot:
+
+            for i in ctx.author.roles:
+
+                    if i.name.lower() == 'dj':
+
+                        if not ctx.author.guild_permissions.administrator:
+
+                            return
+
+
+
+            await ctx.message.guild.voice_client.disconnect()
 
 
 
