@@ -1,3 +1,4 @@
+from typing import Counter
 import discord
 import discord.member
 import discord.channel
@@ -65,43 +66,51 @@ class MainCog(commands.Cog):
 
 
 
-    def spotify_to_youtube(self, playlistURL):
-
-        results = self.spotify.playlist(playlist_id=playlistURL)
+    def spotify_to_youtube(self, URL, type):
 
         trackList = []
 
-        for i in results["tracks"]["items"]:
+        if type == 1:
 
-            if (i["track"]["artists"].__len__() == 1):
+            results = self.spotify.playlist(playlist_id=URL)
 
+            print(results)
 
+            for i in results["tracks"]["items"]:
 
-                trackList.append(i["track"]["name"] + " - " + i["track"]["artists"][0]["name"])
-
-
-
-            else:
-
-                nameString = ""
+                if (i["track"]["artists"].__len__() == 1):
 
 
 
-                for index, b in enumerate(i["track"]["artists"]):
-
-                    nameString += (b["name"])
+                    trackList.append(i["track"]["name"] + " - " + i["track"]["artists"][0]["name"])
 
 
 
-                    if (i["track"]["artists"].__len__() - 1 != index):
+                else:
 
-                        nameString += ", "
-
-
-
-                trackList.append(i["track"]["name"] + " - " + nameString)
+                    nameString = ""
 
 
+
+                    for index, b in enumerate(i["track"]["artists"]):
+
+                        nameString += (b["name"])
+
+
+
+                        if (i["track"]["artists"].__len__() - 1 != index):
+
+                            nameString += ", "
+
+
+
+                    trackList.append(i["track"]["name"] + " - " + nameString)
+
+        elif type == 2:
+
+            results = self.spotify.track(track_id=URL)
+
+            trackList = [results["name"] + " - " + results["artists"][0]["name"]]
 
         return trackList
 
@@ -1089,9 +1098,20 @@ class MainCog(commands.Cog):
 
                     await channel.connect()
 
+            if re.match(r"https://open.spotify.com/track/(\S{34})", ctx.message.content[ctx.message.content.index(' ') + 1:]):
+                
+                try:
+                    searchterms = self.spotify_to_youtube(ctx.message.content[ctx.message.content.index(' ') + 1:], 2)
+
+                except:
+
+                    await ctx.send('Invalid link')
+
+                name = urllib.parse.quote_plus(searchterms[0])
+
             if re.match(r"https://open.spotify.com/playlist/(\S{34})", ctx.message.content[ctx.message.content.index(' ') + 1:]):
                 try:
-                    searchterms = self.spotify_to_youtube(ctx.message.content[ctx.message.content.index(' ') + 1:])
+                    searchterms = self.spotify_to_youtube(ctx.message.content[ctx.message.content.index(' ') + 1:], 1)
 
                     if queue.get(ctx.guild.id):
                         if len(queue[ctx.guild.id]) + len(searchterms) >= 30:
@@ -1188,77 +1208,33 @@ class MainCog(commands.Cog):
                 thread.start()
 
 
+
             #///////////////////////////Playlists below
 
 
 
-            elif re.match(r"https://www.youtube.com/playlist\?list=(\S{34})", ctx.message.content[ctx.message.content.index(' ') + 1:]):
+            elif re.match(r"https://www.youtube.com/playlist\?list=(\S{34})", ctx.message.content[ctx.message.content.index(' ') + 1:]) or re.match(r"https://youtube.com/playlist\?list=(\S{34})", ctx.message.content[ctx.message.content.index(' ') + 1:]) or re.match(r"https://www.youtube.com/watch\?v=(\S{11})&list=(\S{34})", ctx.message.content[ctx.message.content.index(' ') + 1:]) or re.match(r"https://youtube.com/watch\?v=(\S{11})&list=(\S{34})", ctx.message.content[ctx.message.content.index(' ') + 1:]):
 
+                ctx.message.content = re.sub(r'watch\?v=(\S{11})&', "playlist?", ctx.message.content)
+                
                 html = urllib.request.urlopen(ctx.message.content[ctx.message.content.index(' ') + 1:])
-
-
-
-                playList = re.findall(r'"title":"(.*?)"}\]', html.read().decode())[0]
-
-
-
-                html = urllib.request.urlopen(ctx.message.content[ctx.message.content.index(' ') + 1:])
-
-
 
                 try:
-
-                    queue[server.id].append(re.findall(r'"title":{"runs":\[{"text":"(.*?)"}\]', html.read().decode())[0].replace('|', '\|').replace('*', '\*').replace('~', '\~').replace('_', '\_'))
-
-                except:
-
-                    queue[server.id] = [re.findall(r'"title":{"runs":\[{"text":"(.*?)"}\]', html.read().decode())[0].replace('|', '\|').replace('*', '\*').replace('~', '\~').replace('_', '\_')]
-
-                    del(queue[server.id][0])
-
-
-
-                html = urllib.request.urlopen(ctx.message.content[ctx.message.content.index(' ') + 1:])
-
-
-
-                try:
-
+                    
                     video_ids[server.id].extend(re.findall(r"watch\?v=(\S{11})", html.read().decode()))
 
                 except:
 
-                    video_ids[server.id].extend(re.findall(r"watch\?v=(\S{11})", html.read().decode()))
+                    video_ids[server.id] = re.findall(r"watch\?v=(\S{11})", html.read().decode())
 
-                    del(video_ids[server.id][0])
+                for i in video_ids[server.id]:
 
+                    song = pafy.new(i)
 
-
-                song = pafy.new(video_ids[server.id][0])
-
-
-
-                audio = song.getbestaudio()
-
-
-
-                if not voice_channel.is_playing():
-
-
-
-                    voice_channel.play(discord.FFmpegPCMAudio(audio.url, **self.ffmpegPCM_options), after=lambda e: self.stop_playing(server))
-
-                    await ctx.send('Now playing from playlist: {}'.format(playList))
-
-
-
-                    del(queue[server.id][0])
-
-
-
-                    if len(queue[server.id]) == 0:
-
-                        del(queue[server.id])
+                    try:
+                        queue[server.id].append(song.title.replace('|', '\|').replace('*', '\*').replace('~', '\~').replace('_', '\_') + '   **Duration: {}**'.format(song.duration))
+                    except:
+                        queue[server.id] = [song.title.replace('|', '\|').replace('*', '\*').replace('~', '\~').replace('_', '\_') + '   **Duration: {}**'.format(song.duration)]
 
 
 
@@ -1340,10 +1316,17 @@ class MainCog(commands.Cog):
 
                         video_ids[server.id] = [re.findall(r"watch\?v=(\S{11})", html.read().decode())[0]]
 
+                    song = pafy.new(video_ids[server.id][len(video_ids[server.id]) - 1])
+
+
+                    queue[server.id][len(queue[server.id]) - 1] += '   **Duration: {}**'.format(song.duration)
+
                 serverplaylist = None
                     
 
             else:
+
+                print(ctx.message.content)
 
                 if queue.get(ctx.guild.id): #//START
 
@@ -1386,11 +1369,13 @@ class MainCog(commands.Cog):
                     video_ids[server.id] = [re.findall(r"watch\?v=(\S{11})", html.read().decode())[0]]
 
 
+                song = pafy.new(video_ids[server.id][len(video_ids[server.id]) - 1])
+
+
+                queue[server.id][len(queue[server.id]) - 1] += '   **Duration: {}**'.format(song.duration)
+
+
             song = pafy.new(video_ids[server.id][0])
-
-
-
-            #song.duration is an existing attribute
 
 
 
@@ -1400,17 +1385,11 @@ class MainCog(commands.Cog):
 
             if not voice_channel.is_playing():
 
-
-
                 voice_channel.play(discord.FFmpegPCMAudio(audio.url, **self.ffmpegPCM_options), after=lambda e: self.stop_playing(server))
 
-                await ctx.send('Now playing: `{}`'.format(queue[server.id][0]))
-
-
+                await ctx.send('Now playing: `{}`'.format(re.sub(r'   \*\*Duration: (.*?)\*\*', "", queue[server.id][0])))
 
                 del(queue[server.id][0])
-
-
 
                 if len(queue[server.id]) == 0:
 
@@ -1422,12 +1401,12 @@ class MainCog(commands.Cog):
                     queue = queue[:30]
 
             else:
-                await ctx.send('Added to queue: `{}`'.format(queue[server.id][len(queue[server.id]) - 1]))
+                await ctx.send('Added to queue: `{}`'.format(re.sub(r'   \*\*Duration: (.*?)\*\*', "", queue[server.id][0])))
 
     @_play.error
     async def _play_error(self, ctx, error):
         if isinstance(error, commands.CommandOnCooldown):
-            await ctx.send('!play is on cooldown for 5 seconds to avoid slowing down bot')
+            await ctx.send('!play is on cooldown to avoid slowing down bot')
 
 
     
