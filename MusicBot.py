@@ -24,6 +24,7 @@ class MainCog(commands.Cog):
         self.bot = bot
 
         self.playFromList.start()
+        self.clear.start()
 
         for filename in os.listdir(os.path.dirname(__file__) + '/Music_Cogs'):
 
@@ -74,8 +75,6 @@ class MainCog(commands.Cog):
 
             results = self.spotify.playlist(playlist_id=URL)
 
-            print(results)
-
             for i in results["tracks"]["items"]:
 
                 if (i["track"]["artists"].__len__() == 1):
@@ -111,6 +110,8 @@ class MainCog(commands.Cog):
             results = self.spotify.track(track_id=URL)
 
             trackList = [results["name"] + " - " + results["artists"][0]["name"]]
+
+        print(trackList)
 
         return trackList
 
@@ -297,6 +298,10 @@ class MainCog(commands.Cog):
     async def on_command_error(self, ctx, error):
         print(error)
 
+
+    @tasks.loop(minutes=5)
+    async def clear(self):
+        os.system('cls' if os.name == 'nt' else 'clear')
 
 
     @tasks.loop(seconds=5)
@@ -567,8 +572,6 @@ class MainCog(commands.Cog):
         for line in file.readlines():
             serverplaylist.append(re.findall(r'"id":"{\[(.*?)\]}"', line)[0])
 
-        print(serverplaylist)
-
         await self._play(ctx)
 
     @commands.command(aliases=['playlist', 'list'])
@@ -702,8 +705,6 @@ class MainCog(commands.Cog):
         file = open('{}/{}'.format(ctx.channel.guild.id, playlist), 'w')
 
         for line in lines:
-
-            print(line + ' ////////// ' + '"title":"{{[{}]}}", "id":"{{[{}]}}"\n'.format(video_name, video_id))
 
             if '"title":"{{[{}]}}", "id":"{{[{}]}}"\n'.format(video_name, video_id) != line:
 
@@ -1328,8 +1329,6 @@ class MainCog(commands.Cog):
 
             else:
 
-                print(ctx.message.content)
-
                 if queue.get(ctx.guild.id): #//START
 
                     if len(queue[ctx.guild.id]) >= 30:
@@ -1415,4 +1414,3 @@ class MainCog(commands.Cog):
 
 def setup(bot):
     bot.add_cog(MainCog(bot))
-
