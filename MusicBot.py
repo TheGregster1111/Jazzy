@@ -286,7 +286,6 @@ class MainCog(commands.Cog):
 
     @tasks.loop(seconds=5)
     async def playFromList(self):
-        print('Looping and shiet rn')
 
         global queue
         global video_ids
@@ -846,7 +845,8 @@ class MainCog(commands.Cog):
 
             server = ctx.message.guild
 
-
+            if not video_ids.get(server.id):
+                return
 
             if server.voice_client.channel != ctx.author.voice.channel:
 
@@ -938,7 +938,8 @@ class MainCog(commands.Cog):
 
             server = ctx.message.guild
 
-
+            if not video_ids.get(server.id):
+                return
 
             if server.voice_client.channel != ctx.author.voice.channel:
 
@@ -1427,4 +1428,3 @@ class MainCog(commands.Cog):
 
 def setup(bot):
     bot.add_cog(MainCog(bot))
-
