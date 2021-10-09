@@ -1427,7 +1427,7 @@ class MainCog(commands.Cog):
     @_play.error
     async def _play_error(self, ctx, error):
         if isinstance(error, commands.CommandOnCooldown):
-            await ctx.send('!play is on cooldown to avoid slowing down bot')
+            await ctx.send('!play is on cooldown for 5 seconds to avoid slowing down bot')
 
 
     
