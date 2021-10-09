@@ -230,7 +230,13 @@ class MainCog(commands.Cog):
 
             if before.channel == before.channel.guild.voice_client.channel:
 
-                if len(before.channel.members) == 1:
+                membercount = 0
+
+                for i in before.channel.members:
+                    if not i.bot:
+                        membercount += 1
+
+                if membercount == 0:
 
                     await before.channel.guild.voice_client.disconnect()
 
@@ -1014,7 +1020,7 @@ class MainCog(commands.Cog):
 
 
     @commands.command(aliases=['p', 'play'])
-    @commands.cooldown(1.0, 10.0, commands.BucketType.guild)
+    @commands.cooldown(1.0, 5.0, commands.BucketType.guild)
     async def _play(self, ctx):
 
         global serverplaylist
