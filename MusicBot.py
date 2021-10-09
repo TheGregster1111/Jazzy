@@ -358,7 +358,9 @@ class MainCog(commands.Cog):
 
         embedVar.add_field(name='!continue !resume', value='Resume the song', inline=False)
 
-        embedVar.add_field(name='!loop', value='Starts or stops self.looping the song', inline=False)
+        embedVar.add_field(name='!loop', value='Starts or stops looping the song', inline=False)
+
+        embedVar.add_field(name='!leave', value='Makes the bot leave the voice chat', inline=False)
         
         embedVar.add_field(name='!playlistplay !listplay', value='Use "!listplay `Playlist name`" to play songs from a server playlist', inline=False)
 
@@ -785,7 +787,7 @@ class MainCog(commands.Cog):
 
         else:
 
-            await ctx.send('No longer self.looping')
+            await ctx.send('No longer looping')
 
 
 
@@ -1413,3 +1415,4 @@ class MainCog(commands.Cog):
 
 def setup(bot):
     bot.add_cog(MainCog(bot))
+
