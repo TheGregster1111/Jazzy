@@ -411,17 +411,23 @@ class MainCog(commands.Cog):
         global queue
         global video_ids
 
+        allowed = False
+
         if not len(ctx.channel.guild.voice_client.channel.members) - 1 <= 2:
 
             for i in ctx.author.roles:
 
-                    if i.name.lower() == 'dj':
+                await ctx.send(i.name.lower())
 
-                        if not ctx.author.guild_permissions.administrator:
+                if i.name.lower() == 'dj' or ctx.author.guild_permissions.administrator:
+                    
+                    allowed = True
 
-                            return
+            if not allowed:
+                await ctx.send('{} You are not allowed to use this command'.format(ctx.message.author.mention))
+                return
 
-
+        await ctx.send('Resetting')
 
         try:
 
