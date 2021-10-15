@@ -15,6 +15,7 @@ import datetime
 import spotipy
 from spotipy import SpotifyClientCredentials
 from threading import Thread
+from sclib import SoundcloudAPI, Track, Playlist
 
 print('Test file successfully run')
 
@@ -888,12 +889,6 @@ class MainCog(commands.Cog):
 
                 del(self.skips[server.id])
 
-
-
-                del(video_ids[ctx.channel.guild.id][0])
-
-
-
                 if len(video_ids[ctx.channel.guild.id]) == 0:
 
                     del(video_ids[ctx.channel.guild.id])
@@ -911,12 +906,6 @@ class MainCog(commands.Cog):
                 await ctx.send('Skipping')
 
                 del(self.skips[server.id])
-
-
-
-                del(video_ids[ctx.channel.guild.id][0])
-
-
 
                 if len(video_ids[ctx.channel.guild.id]) == 0:
 
@@ -1376,8 +1365,6 @@ class MainCog(commands.Cog):
 
             song = pafy.new(video_ids[server.id][0])
 
-
-
             audio = song.getbestaudio()
 
 
@@ -1386,7 +1373,7 @@ class MainCog(commands.Cog):
 
                 voice_channel.play(discord.FFmpegPCMAudio(audio.url, **self.ffmpegPCM_options), after=lambda e: self.stop_playing(server))
 
-                await ctx.send('Now playing: `{}`'.format(re.sub(r'   \*\*Duration: (.*?)\*\*', "", queue[server.id][0])))
+                await ctx.send('Now playing: `{}`'.format(re.sub(r'   \*\*Duration: (.*?)\*\*', "", queue[server.id][0]).replace('\\', '')))
 
                 del(queue[server.id][0])
 
@@ -1400,14 +1387,12 @@ class MainCog(commands.Cog):
                     queue = queue[:30]
 
             else:
-                await ctx.send('Added to queue: `{}`'.format(re.sub(r'   \*\*Duration: (.*?)\*\*', "", queue[server.id][0])))
+                await ctx.send('Added to queue: `{}`'.format(re.sub(r'   \*\*Duration: (.*?)\*\*', "", queue[server.id][len(queue[server.id]) - 1]).replace('\\', '')))
 
     @_play.error
     async def _play_error(self, ctx, error):
         if isinstance(error, commands.CommandOnCooldown):
             await ctx.send('!play is on cooldown to avoid slowing down bot')
-
-
     
 
 def setup(bot):
