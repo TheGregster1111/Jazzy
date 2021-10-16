@@ -1399,6 +1399,11 @@ class MainCog(commands.Cog):
     async def _play_error(self, ctx, error):
         if isinstance(error, commands.CommandOnCooldown):
             await ctx.send('!play is on cooldown to avoid slowing down bot')
+
+    @commands.command()
+    async def soundcloud(self, ctx):
+        print('sex')
+
     
 
 def setup(bot):
