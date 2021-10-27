@@ -15,7 +15,6 @@ import datetime
 import spotipy
 from spotipy import SpotifyClientCredentials
 from threading import Thread
-from sclib import SoundcloudAPI, Track, Playlist
 
 print('Test file successfully run')
 
