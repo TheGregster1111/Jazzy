@@ -151,6 +151,9 @@ class MainCog(commands.Cog):
 
                 print('Something went wrong after the song stopped playing at {}'.format(datetime.datetime.now()))
 
+        
+
+        self.playFromList()
     
 
     def add_to_queue(self, searchterms, server):
@@ -902,7 +905,7 @@ class MainCog(commands.Cog):
 
                     del(video_ids[ctx.channel.guild.id])
 
-
+                    self.playFromList()
 
                     return
 
@@ -920,7 +923,7 @@ class MainCog(commands.Cog):
 
                     del(video_ids[ctx.channel.guild.id])
 
-
+                    self.playFromList()
 
                     return
 
@@ -928,7 +931,7 @@ class MainCog(commands.Cog):
 
             else:
 
-                await ctx.send('{}/{}'.format(self.skips[server.id], round((len(server.voice_client.channel.members)) - 1 / 2)))
+                await ctx.send('{} out of {} users skipping'.format(self.skips[server.id], round((len(server.voice_client.channel.members)) - 1 / 2)))
 
 
 
@@ -962,7 +965,7 @@ class MainCog(commands.Cog):
 
                 del(video_ids[ctx.channel.guild.id])
 
-
+                self.playFromList()
 
                 return
 
