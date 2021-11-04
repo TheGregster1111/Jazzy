@@ -537,8 +537,14 @@ class MainCog(commands.Cog):
 
 
             try:
+                counter = 0
 
-                await ctx.send('Voice active in servers: {}'.format(len(self.bot.voice_clients)))
+                if self.bot.voice_clients:
+                    for i in self.bot.voice_clients:
+                        if i.is_playing():
+                            counter += 1
+
+                await ctx.send('Voice active in {} servers\nPlaying in {} servers'.format(len(self.bot.voice_clients), counter))
 
             except:
 
@@ -946,26 +952,15 @@ class MainCog(commands.Cog):
 
             server = ctx.message.guild
 
-            if not video_ids.get(server.id):
-                return
-
-            if server.voice_client.channel != ctx.author.voice.channel:
-
-                return
-
-
-
             server.voice_client.stop()
 
             await ctx.send('Skipping')
 
+            del(self.skips[server.id])
 
+            if len(video_ids[ctx.channel.guild.id]) == 0:
 
-            if len(video_ids[i.guild.id]) <= 1:
-
-                del(video_ids[i.guild.id])
-
-                del(queue[i.guild.id])
+                del(video_ids[ctx.channel.guild.id])
 
 
 
