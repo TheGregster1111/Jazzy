@@ -315,9 +315,7 @@ class MainCog(commands.Cog):
 
             if not i.is_playing() and video_ids.get(i.guild.id):
 
-
-
-                song = pafy.new(video_ids[i.guild.id][0])
+                song = pafy.new(basic=False, gdata=False, url=video_ids[i.guild.id][0])
 
 
 
@@ -1220,7 +1218,7 @@ class MainCog(commands.Cog):
 
                 for i in video_ids[server.id]:
 
-                    song = pafy.new(i)
+                    song = pafy.new(basic=False, gdata=False, url=i)
 
                     try:
                         queue[server.id].append(song.title.replace('|', '\|').replace('*', '\*').replace('~', '\~').replace('_', '\_').replace('\\u0026', '&') + '   **Duration: {}**'.format(song.duration))
@@ -1307,15 +1305,17 @@ class MainCog(commands.Cog):
 
                         video_ids[server.id] = [re.findall(r"watch\?v=(\S{11})", html.read().decode())[0]]
 
-                    song = pafy.new(video_ids[server.id][len(video_ids[server.id]) - 1])
+                    song = pafy.new(basic=False, gdata=False, url=video_ids[server.id][len(video_ids[server.id]) - 1])
 
 
-                    queue[server.id][len(queue[server.id]) - 1] += '   **Duration: {}**'.format(song.duration)
+                    #queue[server.id][len(queue[server.id]) - 1] += '   **Duration: {}**'.format(song.duration)
+                    queue[server.id][len(queue[server.id]) - 1] += '   **Duration: Unknown**'
 
                 serverplaylist = None
                     
 
             else:
+                print('test')
 
                 if queue.get(ctx.guild.id): #//START
 
@@ -1356,19 +1356,18 @@ class MainCog(commands.Cog):
                 except:
 
                     video_ids[server.id] = [re.findall(r"watch\?v=(\S{11})", html.read().decode())[0]]
+                song = pafy.new(basic=False, gdata=False, url=video_ids[server.id][len(video_ids[server.id]) - 1])
 
+                #queue[server.id][len(queue[server.id]) - 1] += '   **Duration: {}**'.format(song.duration)
+                queue[server.id][len(queue[server.id]) - 1] += '   **Duration: Unknown**'
 
-                song = pafy.new(video_ids[server.id][len(video_ids[server.id]) - 1])
+            print('test 2')
 
+            song = pafy.new(basic=False, gdata=False, url=video_ids[server.id][0])
 
-                queue[server.id][len(queue[server.id]) - 1] += '   **Duration: {}**'.format(song.duration)
-
-
-            song = pafy.new(video_ids[server.id][0])
+            print('test 3')
 
             audio = song.getbestaudio()
-
-
 
             if not voice_channel.is_playing():
 
