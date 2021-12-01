@@ -1,5 +1,6 @@
 from typing import Counter
 import discord
+from discord import player
 import discord.member
 import discord.channel
 import discord.message
@@ -7,6 +8,8 @@ import discord.voice_client
 from discord.ext import commands, tasks
 from discord_components import Button, ButtonStyle
 import os
+
+from youtube_dl.utils import locked_file
 import MusicBotConfig
 import urllib.request
 import re
@@ -42,20 +45,27 @@ class MainCog(commands.Cog):
     spotify = spotipy.Spotify(client_credentials_manager=SpotifyClientCredentials(MusicBotConfig.client_id, MusicBotConfig.client_secret))
 
     global video_ids
-
     video_ids = {}
     
     skips = {}
 
     global queue
-
     queue = {}
 
     looping = {}
 
     global serverplaylist
-
     serverplaylist = None
+
+    global locked
+    locked = {}
+
+    global maxSize
+
+    global searchterms
+    searchterms = {}
+    
+    maxSize = 60
 
     ffmpegPCM_options = {
 
@@ -156,14 +166,14 @@ class MainCog(commands.Cog):
         self.playFromList()
     
 
-    def add_to_queue(self, searchterms, server):
+    def add_to_queue(self, searchterms, server, ctx):
 
         global video_ids
         global queue
 
         counter = 0
 
-        for i in searchterms:
+        for i in searchterms[server.id]:
 
             counter += 1
 
@@ -178,6 +188,8 @@ class MainCog(commands.Cog):
             except:
                 
                 if counter >= 2:
+                    del(locked[server.id])
+                    #await ctx.send("Playlist added to queue")
                     return
 
                 queue[server.id] = [re.findall(r'"title":{"runs":\[{"text":"(.*?)"}\]', html.read().decode())[0].replace('|', '\|').replace('*', '\*').replace('~', '\~').replace('_', '\_').replace('\\u0026', '&')]
@@ -195,9 +207,14 @@ class MainCog(commands.Cog):
             except:
 
                 if counter >= 2:
+                    del(locked[server.id])
+                    #await ctx.send("Playlist added to queue")
                     return
 
                 video_ids[server.id] = [re.findall(r"watch\?v=(\S{11})", html.read().decode())[0]]
+        
+        del(locked[server.id])
+        #await ctx.send("Playlist added to queue")
 
 
 
@@ -1024,6 +1041,8 @@ class MainCog(commands.Cog):
         global serverplaylist
         global queue
         global video_ids
+        global locked
+        global searchterms 
 
         if not ctx.author.bot:
 
@@ -1041,11 +1060,13 @@ class MainCog(commands.Cog):
 
             channel = ctx.author.voice.channel
 
-
-
             name = urllib.parse.quote_plus(ctx.message.content[ctx.message.content.index(' ') + 1:])
 
-
+            if locked.get(ctx.guild.id):
+                await ctx.send("Please wait while your previous playlist is being added to the queue")
+                return
+                
+            
 
             if name == '':
 
@@ -1090,29 +1111,29 @@ class MainCog(commands.Cog):
             if re.match(r"https://open.spotify.com/track/(\S{34})", ctx.message.content[ctx.message.content.index(' ') + 1:]):
                 
                 try:
-                    searchterms = self.spotify_to_youtube(ctx.message.content[ctx.message.content.index(' ') + 1:], 2)
+                    searchterms[server.id] = self.spotify_to_youtube(ctx.message.content[ctx.message.content.index(' ') + 1:], 2)
 
                 except:
 
                     await ctx.send('Invalid link')
 
-                name = urllib.parse.quote_plus(searchterms[0])
+                name = urllib.parse.quote_plus(searchterms[server.id][0])
 
             if re.match(r"https://open.spotify.com/playlist/(\S{34})", ctx.message.content[ctx.message.content.index(' ') + 1:]):
                 try:
-                    searchterms = self.spotify_to_youtube(ctx.message.content[ctx.message.content.index(' ') + 1:], 1)
+                    searchterms[server.id] = self.spotify_to_youtube(ctx.message.content[ctx.message.content.index(' ') + 1:], 1)
 
                     if queue.get(ctx.guild.id):
-                        if len(queue[ctx.guild.id]) + len(searchterms) >= 30:
+                        if len(queue[ctx.guild.id]) + len(searchterms[server.id]) >= maxSize:
                             await ctx.send('Maximum queue size reached')
 
-                            searchterms = searchterms[:30 - len(queue[ctx.guild.id])]
+                            searchterms[server.id] = searchterms[server.id][:maxSize - len(queue[ctx.guild.id])]
 
                     else:
-                        if len(searchterms) >= 30:
+                        if len(searchterms[server.id]) >= maxSize:
                             await ctx.send('Maximum queue size reached')
 
-                            searchterms = searchterms[:30]
+                            searchterms[server.id] = searchterms[server.id][:maxSize]
                 except:
 
                     await ctx.send('Invalid link')
@@ -1165,23 +1186,10 @@ class MainCog(commands.Cog):
 
                         await channel.connect()
 
+                
 
 
-                html = urllib.request.urlopen("https://www.youtube.com/results?search_query=" + urllib.parse.quote_plus(searchterms[0]))
-
-                try:
-
-                    queue[server.id].append(re.findall(r'"title":{"runs":\[{"text":"(.*?)"}\]', html.read().decode())[0].replace('|', '\|').replace('*', '\*').replace('~', '\~').replace('_', '\_').replace('\\u0026', '&'))
-
-                except:
-
-                    queue[server.id] = [re.findall(r'"title":{"runs":\[{"text":"(.*?)"}\]', html.read().decode())[0].replace('|', '\|').replace('*', '\*').replace('~', '\~').replace('_', '\_').replace('\\u0026', '&')]
-
-
-
-                html = urllib.request.urlopen("https://www.youtube.com/results?search_query=" + urllib.parse.quote_plus(searchterms[0]))
-
-
+                html = urllib.request.urlopen("https://www.youtube.com/results?search_query=" + urllib.parse.quote_plus(searchterms[server.id][0]))
 
                 try:
 
@@ -1190,10 +1198,21 @@ class MainCog(commands.Cog):
                 except:
 
                     video_ids[server.id] = [re.findall(r"watch\?v=(\S{11})", html.read().decode())[0]]
+                    
+                song = pafy.new(basic=False, gdata=False, url=video_ids[server.id][len(video_ids[server.id]) - 1])
 
-                searchterms = searchterms[1:]
+                try:
 
-                thread = Thread(target = self.add_to_queue, args = (searchterms, server))
+                    queue[server.id].append(song.title.replace('|', '\|').replace('*', '\*').replace('~', '\~').replace('_', '\_').replace('\\u0026', '&'))
+
+                except:
+
+                    queue[server.id] = [song.title.replace('|', '\|').replace('*', '\*').replace('~', '\~').replace('_', '\_').replace('\\u0026', '&')]
+
+                searchterms[server.id] = searchterms[server.id][1:]
+
+                locked[server.id] = True
+                thread = Thread(target = self.add_to_queue, args = (searchterms, server, ctx))
                 thread.start()
 
 
@@ -1203,27 +1222,41 @@ class MainCog(commands.Cog):
 
 
             elif re.match(r"https://www.youtube.com/playlist\?list=(\S{34})", ctx.message.content[ctx.message.content.index(' ') + 1:]) or re.match(r"https://youtube.com/playlist\?list=(\S{34})", ctx.message.content[ctx.message.content.index(' ') + 1:]) or re.match(r"https://www.youtube.com/watch\?v=(\S{11})&list=(\S{34})", ctx.message.content[ctx.message.content.index(' ') + 1:]) or re.match(r"https://youtube.com/watch\?v=(\S{11})&list=(\S{34})", ctx.message.content[ctx.message.content.index(' ') + 1:]):
-
-                ctx.message.content = re.sub(r'watch\?v=(\S{11})&', "playlist?", ctx.message.content)
                 
-                html = urllib.request.urlopen(ctx.message.content[ctx.message.content.index(' ') + 1:])
+                ctx.message.content = re.sub(r'watch\?v=(\S{11})&', "playlist?", ctx.message.content)[4:]
+
+                locked[server.id] = True
+
+                html = urllib.request.urlopen(ctx.message.content)
+
+                searchterms[server.id] = re.findall(r"watch\?v=(\S{11})", html.read().decode())
+                    
+                song = pafy.new(basic=False, gdata=False, url=searchterms[server.id][0])
 
                 try:
-                    
-                    video_ids[server.id].extend(re.findall(r"watch\?v=(\S{11})", html.read().decode()))
+
+                    queue[server.id].append(song.title.replace('|', '\|').replace('*', '\*').replace('~', '\~').replace('_', '\_').replace('\\u0026', '&'))
 
                 except:
 
-                    video_ids[server.id] = re.findall(r"watch\?v=(\S{11})", html.read().decode())
+                    queue[server.id] = [song.title.replace('|', '\|').replace('*', '\*').replace('~', '\~').replace('_', '\_').replace('\\u0026', '&')]
 
-                for i in video_ids[server.id]:
+                print(queue)
 
-                    song = pafy.new(basic=False, gdata=False, url=i)
+                try:
 
-                    try:
-                        queue[server.id].append(song.title.replace('|', '\|').replace('*', '\*').replace('~', '\~').replace('_', '\_').replace('\\u0026', '&') + '   **Duration: {}**'.format(song.duration))
-                    except:
-                        queue[server.id] = [song.title.replace('|', '\|').replace('*', '\*').replace('~', '\~').replace('_', '\_').replace('\\u0026', '&') + '   **Duration: {}**'.format(song.duration)]
+                    video_ids[server.id].append(searchterms[server.id][0])
+
+                except:
+
+                    video_ids[server.id] = [searchterms[server.id][0]]
+
+                searchterms[server.id] = searchterms[server.id][1:]
+
+                thread = Thread(target = self.add_to_queue, args = (searchterms, server, ctx))
+                thread.start()  
+
+
 
 
 
@@ -1281,21 +1314,7 @@ class MainCog(commands.Cog):
 
                 for i in serverplaylist:
 
-                    html = urllib.request.urlopen("https://www.youtube.com/results?search_query=" + i)
-
-                    try:
-
-                        queue[server.id].append(re.findall(r'"title":{"runs":\[{"text":"(.*?)"}\]', html.read().decode())[0].replace('|', '\|').replace('*', '\*').replace('~', '\~').replace('_', '\_').replace('\\u0026', '&'))
-
-                    except:
-
-                        queue[server.id] = [re.findall(r'"title":{"runs":\[{"text":"(.*?)"}\]', html.read().decode())[0].replace('|', '\|').replace('*', '\*').replace('~', '\~').replace('_', '\_').replace('\\u0026', '&')]
-
-
-
-                    html = urllib.request.urlopen("https://www.youtube.com/results?search_query=" + i)
-
-
+                    html = urllib.request.urlopen("https://www.youtube.com/results?search_query=" + name)
 
                     try:
 
@@ -1304,50 +1323,40 @@ class MainCog(commands.Cog):
                     except:
 
                         video_ids[server.id] = [re.findall(r"watch\?v=(\S{11})", html.read().decode())[0]]
-
+                        
                     song = pafy.new(basic=False, gdata=False, url=video_ids[server.id][len(video_ids[server.id]) - 1])
 
+                    try:
 
-                    #queue[server.id][len(queue[server.id]) - 1] += '   **Duration: {}**'.format(song.duration)
-                    queue[server.id][len(queue[server.id]) - 1] += '   **Duration: Unknown**'
+                        queue[server.id].append(song.title.replace('|', '\|').replace('*', '\*').replace('~', '\~').replace('_', '\_').replace('\\u0026', '&'))
+
+                    except:
+
+                        queue[server.id] = [song.title.replace('|', '\|').replace('*', '\*').replace('~', '\~').replace('_', '\_').replace('\\u0026', '&')]
+
+                    queue[server.id][len(queue[server.id]) - 1] += '   **Duration: {}**'.format(song.duration)
 
                 serverplaylist = None
                     
 
             else:
-                print('test')
-
                 if queue.get(ctx.guild.id): #//START
 
-                    if len(queue[ctx.guild.id]) >= 30:
+                    if len(queue[ctx.guild.id]) >= maxSize:
                         await ctx.send('Maximum queue size reached')
 
                     elif queue.get(serverplaylist):
-                        if len(queue[ctx.guild.id]) + len(serverplaylist) >= 30:
+                        if len(queue[ctx.guild.id]) + len(serverplaylist) >= maxSize:
                             await ctx.send('Maximum queue size reached')
 
                             serverplaylist = serverplaylist[:len(queue[ctx.guild.id]) - len(serverplaylist)] #//////FOR LATER
                     
-                        elif len(serverplaylist) >= 30:
+                        elif len(serverplaylist) >= maxSize:
                             await ctx.send('Maximum queue size reached')
 
-                            serverplaylist = serverplaylist[:30] #//END
+                            serverplaylist = serverplaylist[:maxSize] #//END
 
                 html = urllib.request.urlopen("https://www.youtube.com/results?search_query=" + name)
-
-                try:
-
-                    queue[server.id].append(urllib.parse.unquote(re.findall(r'"title":{"runs":\[{"text":"(.*?)"}\]', html.read().decode())[0].replace('|', '\|').replace('*', '\*').replace('~', '\~').replace('_', '\_').replace('\\u0026', '&')))
-
-                except:
-
-                    queue[server.id] = [urllib.parse.unquote(re.findall(r'"title":{"runs":\[{"text":"(.*?)"}\]', html.read().decode())[0].replace('|', '\|').replace('*', '\*').replace('~', '\~').replace('_', '\_').replace('\\u0026', '&'))]
-
-
-
-                html = urllib.request.urlopen("https://www.youtube.com/results?search_query=" + name)
-
-
 
                 try:
 
@@ -1356,16 +1365,20 @@ class MainCog(commands.Cog):
                 except:
 
                     video_ids[server.id] = [re.findall(r"watch\?v=(\S{11})", html.read().decode())[0]]
+                    
                 song = pafy.new(basic=False, gdata=False, url=video_ids[server.id][len(video_ids[server.id]) - 1])
 
-                #queue[server.id][len(queue[server.id]) - 1] += '   **Duration: {}**'.format(song.duration)
-                queue[server.id][len(queue[server.id]) - 1] += '   **Duration: Unknown**'
+                try:
 
-            print('test 2')
+                    queue[server.id].append(song.title.replace('|', '\|').replace('*', '\*').replace('~', '\~').replace('_', '\_').replace('\\u0026', '&'))
+
+                except:
+
+                    queue[server.id] = [song.title.replace('|', '\|').replace('*', '\*').replace('~', '\~').replace('_', '\_').replace('\\u0026', '&')]
+
+                queue[server.id][len(queue[server.id]) - 1] += '   **Duration: {}**'.format(song.duration)
 
             song = pafy.new(basic=False, gdata=False, url=video_ids[server.id][0])
-
-            print('test 3')
 
             audio = song.getbestaudio()
 
@@ -1381,10 +1394,10 @@ class MainCog(commands.Cog):
 
                     del(queue[server.id])
 
-                if len(queue[ctx.guild.id]) >= 30:
+                if len(queue[ctx.guild.id]) >= maxSize:
                     await ctx.send('Maximum queue size reached')
 
-                    queue = queue[:30]
+                    queue = queue[:maxSize]
 
             else:
                 await ctx.send('Added to queue: `{}`'.format(re.sub(r'   \*\*Duration: (.*?)\*\*', "", queue[server.id][len(queue[server.id]) - 1]).replace('\\', '')))
