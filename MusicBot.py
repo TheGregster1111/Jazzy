@@ -1063,7 +1063,7 @@ class MainCog(commands.Cog):
             name = urllib.parse.quote_plus(ctx.message.content[ctx.message.content.index(' ') + 1:])
 
             if locked.get(ctx.guild.id):
-                await ctx.send("Please wait while your previous playlist is being added to the queue")
+                await ctx.send("Please wait while previous playlist is being added to the queue")
                 return
                 
             
@@ -1221,8 +1221,11 @@ class MainCog(commands.Cog):
 
 
 
-            elif re.match(r"https://www.youtube.com/playlist\?list=(\S{34})", ctx.message.content[ctx.message.content.index(' ') + 1:]) or re.match(r"https://youtube.com/playlist\?list=(\S{34})", ctx.message.content[ctx.message.content.index(' ') + 1:]) or re.match(r"https://www.youtube.com/watch\?v=(\S{11})&list=(\S{34})", ctx.message.content[ctx.message.content.index(' ') + 1:]) or re.match(r"https://youtube.com/watch\?v=(\S{11})&list=(\S{34})", ctx.message.content[ctx.message.content.index(' ') + 1:]):
+            elif (re.match(r"https://www.youtube.com/playlist\?list=(\S{34})", ctx.message.content[ctx.message.content.index(' ') + 1:]) or re.match(r"https://youtube.com/playlist\?list=(\S{34})", ctx.message.content[ctx.message.content.index(' ') + 1:]) or re.match(r"https://www.youtube.com/watch\?v=(\S{11})&list=(\S{34})", ctx.message.content[ctx.message.content.index(' ') + 1:]) or re.match(r"https://youtube.com/watch\?v=(\S{11})&list=(\S{34})", ctx.message.content[ctx.message.content.index(' ') + 1:])) and not (re.match(r"https://youtube.com/watch\?v=(\S{11})&list=(.*?)&index=(.*?)", ctx.message.content[ctx.message.content.index(' ') + 1:]) or re.match(r"https://www.youtube.com/watch\?v=(\S{11})&list=(.*?)&index=(.*?)", ctx.message.content[ctx.message.content.index(' ') + 1:])):
                 
+                #print(ctx.message.content[ctx.message.content.index(' ') + 1:])
+                #print("Test: {}".format(re.match(r"https://www.youtube.com/watch\?v=(\S{11})&list=(.*?)&index=(.*?)", ctx.message.content[ctx.message.content.index(' ') + 1:])))
+
                 ctx.message.content = re.sub(r'watch\?v=(\S{11})&', "playlist?", ctx.message.content)[4:]
 
                 locked[server.id] = True
@@ -1230,6 +1233,8 @@ class MainCog(commands.Cog):
                 html = urllib.request.urlopen(ctx.message.content)
 
                 searchterms[server.id] = re.findall(r"watch\?v=(\S{11})", html.read().decode())
+
+                print(searchterms)
                     
                 song = pafy.new(basic=False, gdata=False, url=searchterms[server.id][0])
 
@@ -1252,6 +1257,8 @@ class MainCog(commands.Cog):
                     video_ids[server.id] = [searchterms[server.id][0]]
 
                 searchterms[server.id] = searchterms[server.id][1:]
+
+                print(searchterms)
 
                 thread = Thread(target = self.add_to_queue, args = (searchterms, server, ctx))
                 thread.start()  
@@ -1356,7 +1363,11 @@ class MainCog(commands.Cog):
 
                             serverplaylist = serverplaylist[:maxSize] #//END
 
+                ctx.message.content = re.sub(r"&list=(\S{34})&index=(.*?)", "", ctx.message.content)
+
                 html = urllib.request.urlopen("https://www.youtube.com/results?search_query=" + name)
+
+                print("test")
 
                 try:
 
