@@ -49,6 +49,8 @@ class MainCog(commands.Cog):
     
     skips = {}
 
+    skipers = {}
+
     global queue
     queue = {}
 
@@ -896,19 +898,45 @@ class MainCog(commands.Cog):
 
                 return
 
+            vcMembers = len(server.voice_client.channel.members)
 
+            for i in server.voice_client.channel.members:
+                if i.bot:
+                    vcMembers -= 1
 
-            try:
+            skipMinimum = round((vcMembers / 3) * 2)
 
-                self.skips[server.id] += 1
+            print("Skip minimum: {}".format(skipMinimum))
+            print("VC members: {}".format(vcMembers))
+            print((vcMembers / 3) * 2)
 
-            except:
+            if not self.skipers.get(server.id):
+                self.skipers[server.id] = [ctx.message.author.id]
 
-                self.skips[server.id] = 1
+                try:
 
+                    self.skips[server.id] += 1
 
+                except:
 
-            if self.skips[server.id] >= (len(server.voice_client.channel.members)) - 1 / 2:
+                    self.skips[server.id] = 1
+
+            print(self.skipers[server.id])
+            if not ctx.message.author.id in self.skipers[server.id]:
+                print('test 1')
+                self.skipers[server.id].append(ctx.message.author.id)
+
+                try:
+
+                    self.skips[server.id] += 1
+
+                except:
+
+                    self.skips[server.id] = 1
+
+            print(self.skips)
+
+            if self.skips[server.id] >= skipMinimum:
 
                 server.voice_client.stop()
 
@@ -926,7 +954,7 @@ class MainCog(commands.Cog):
 
 
 
-            elif len(server.voice_client.channel.members) - 1 <= 2:
+            elif vcMembers <= 2:
 
                 server.voice_client.stop()
 
@@ -946,7 +974,7 @@ class MainCog(commands.Cog):
 
             else:
 
-                await ctx.send('{} out of {} users skipping'.format(self.skips[server.id], round((len(server.voice_client.channel.members)) - 1 / 2)))
+                await ctx.send('{} out of {} users skipping'.format(self.skips[server.id], skipMinimum))
 
 
 
