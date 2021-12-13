@@ -594,8 +594,6 @@ class MainCog(commands.Cog):
 
                                 return
 
-        print(video_ids[server.id][:1])
-
         temp = list(zip(queue[server.id], video_ids[server.id][1:]))
 
         video_ids[server.id] = [video_ids[server.id][0]]
@@ -605,6 +603,8 @@ class MainCog(commands.Cog):
         queue[server.id], temp2 = zip(*temp)
 
         video_ids[server.id].extend(temp2)
+
+        await ctx.send('Shuffling')
             
     @commands.command(aliases=['leave'])
     async def _leave(self, ctx):
