@@ -1096,7 +1096,39 @@ class MainCog(commands.Cog):
 
             await ctx.send('Removed at {}'.format(index))
 
+    @commands.command(aliases=['pn', 'playnow'])
+    @commands.cooldown(1.0, 10.0, commands.BucketType.guild)
+    async def _playnow(self, ctx):
 
+        server = ctx.message.guild
+
+        ctx.message.content = MusicBotConfig.prefix + 'p' + ctx.message.content[4:]
+
+        await self._play(ctx)
+
+        server.voice_client.stop()
+
+        try:
+            del(self.skips[server.id])
+
+        except:
+            pass
+
+        if len(video_ids[server.id]) == 0:
+
+            del(video_ids[server.id])
+
+            #return
+
+        queue[server.id].insert(0, queue[server.id][len(queue[server.id]) - 1])
+
+        del(queue[server.id][len(queue[server.id]) - 1])
+
+        video_ids[server.id].insert(0, video_ids[server.id][len(video_ids[server.id]) - 1])
+
+        del(video_ids[server.id][len(video_ids[server.id]) - 1])
+
+        await self.playFromList()
 
     @commands.command(aliases=['p', 'play'])
     @commands.cooldown(1.0, 5.0, commands.BucketType.guild)
