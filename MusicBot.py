@@ -365,6 +365,8 @@ class MainCog(commands.Cog):
 
         embedVar.add_field(name='!play !p', value='Play the audio of a youtube song, playlist, or spotify playlist', inline=False)
 
+        embedVar.add_field(name='!playnow !pn', value='Same as !play but plays the song instantly', inline=False)
+
         embedVar.add_field(name='!skip !s', value='Skip current song', inline=False)
 
         embedVar.add_field(name='!fs !fskip !fastskip !forceskip', value='Instantly skip current song, only useable by someone with a role named DJ or an admin', inline=False)
