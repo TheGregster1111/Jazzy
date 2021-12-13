@@ -1,6 +1,5 @@
 from typing import Counter
 import discord
-from discord import player
 import discord.member
 import discord.channel
 import discord.message
@@ -8,8 +7,7 @@ import discord.voice_client
 from discord.ext import commands, tasks
 from discord_components import Button, ButtonStyle
 import os
-
-from youtube_dl.utils import locked_file
+import random
 import MusicBotConfig
 import urllib.request
 import re
@@ -384,6 +382,8 @@ class MainCog(commands.Cog):
         embedVar.add_field(name='!loop', value='Starts or stops looping the song', inline=False)
 
         embedVar.add_field(name='!leave', value='Makes the bot leave the voice chat', inline=False)
+
+        embedVar.add_field(name='!shuffle', value='Shuffles the queue', inline=False)
         
         embedVar.add_field(name='!playlistplay !listplay', value='Use "!listplay `Playlist name`" to play songs from a server playlist', inline=False)
 
@@ -569,6 +569,42 @@ class MainCog(commands.Cog):
             except:
 
                 pass
+
+    @commands.command()
+    async def shuffle(self, ctx):
+
+        server = ctx.message.guild
+
+        if not ctx.author.bot:
+
+            vcMembers = len(server.voice_client.channel.members)
+
+            for i in server.voice_client.channel.members:
+                if i.bot:
+                    vcMembers -= 1
+
+
+            if vcMembers > 2:
+
+                for i in ctx.author.roles:
+
+                        if i.name.lower() == 'dj':
+
+                            if not ctx.author.guild_permissions.administrator:
+
+                                return
+
+        print(video_ids[server.id][:1])
+
+        temp = list(zip(queue[server.id], video_ids[server.id][1:]))
+
+        video_ids[server.id] = [video_ids[server.id][0]]
+
+        random.shuffle(temp)
+
+        queue[server.id], temp2 = zip(*temp)
+
+        video_ids[server.id].extend(temp2)
             
     @commands.command(aliases=['leave'])
     async def _leave(self, ctx):
