@@ -1104,7 +1104,7 @@ class MainCog(commands.Cog):
 
         server = ctx.message.guild
 
-        ctx.message.content = MusicBotConfig.prefix + 'p' + ctx.message.content[4:]
+        ctx.message.content = MusicBotConfig.prefix + 'p' + ctx.message.content[3:]
 
         await self._play(ctx)
 
