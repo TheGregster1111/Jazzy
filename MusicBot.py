@@ -577,6 +577,10 @@ class MainCog(commands.Cog):
 
         server = ctx.message.guild
 
+        if len(video_ids[server.id]) < 3:
+            await ctx.send('Not enough songs in queue to shuffle')
+            return
+
         if not ctx.author.bot:
 
             vcMembers = len(server.voice_client.channel.members)
@@ -1104,7 +1108,11 @@ class MainCog(commands.Cog):
 
         server = ctx.message.guild
 
-        ctx.message.content = MusicBotConfig.prefix + 'p' + ctx.message.content[3:]
+        if len(video_ids[server.id]) < 2:
+            await ctx.send('Not enough songs in queue to use that command')
+            return
+
+        ctx.message.content = MusicBotConfig.prefix + 'p' + ctx.message.content[4:]
 
         await self._play(ctx)
 
