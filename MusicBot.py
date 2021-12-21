@@ -389,9 +389,9 @@ class MainCog(commands.Cog):
         
         embedVar.add_field(name='{0}playlistplay {0}listplay'.format(MusicBotConfig.prefix), value='Use "{0}listplay `Playlist name`" to play songs from a server playlist'.format(MusicBotConfig.prefix), inline=False)
 
-        embedVar.add_field(name='{0}playlistadd {0}listadd'.format(MusicBotConfig.prefix), value='Use "{0}listadd `Playlist name` `Song name`" to add a song to a server playlist'.format(MusicBotConfig.prefix), inline=False)
+        embedVar.add_field(name='{0}playlistadd {0}listadd'.format(MusicBotConfig.prefix), value='Use "{0}listadd `Playlist name`:::`Song name`" to add a song to a server playlist'.format(MusicBotConfig.prefix), inline=False)
 
-        embedVar.add_field(name='{0}playlistremove {0}listremove'.format(MusicBotConfig.prefix), value='Use "{0}listremove `Playlist name` `Song name`" to remove a song from a server playlist'.format(MusicBotConfig.prefix), inline=False)
+        embedVar.add_field(name='{0}playlistremove {0}listremove'.format(MusicBotConfig.prefix), value='Use "{0}listremove `Playlist name`:::`Song name`" to remove a song from a server playlist'.format(MusicBotConfig.prefix), inline=False)
 
         embedVar.add_field(name='{0}removeplaylist {0}removelist'.format(MusicBotConfig.prefix), value='Use "{0}removelist `Playlist name`" to remove a server playlist'.format(MusicBotConfig.prefix), inline=False)
 
@@ -599,11 +599,13 @@ class MainCog(commands.Cog):
 
                 for i in ctx.author.roles:
 
-                        if i.name.lower() == 'dj':
+                    if i.name.lower() == 'dj':
+                        
+                        pass
 
-                            if not ctx.author.guild_permissions.administrator:
+                if not ctx.author.guild_permissions.administrator:
 
-                                return
+                    return
 
         temp = list(zip(queue[server.id], video_ids[server.id][1:]))
 
@@ -624,11 +626,13 @@ class MainCog(commands.Cog):
 
             for i in ctx.author.roles:
 
-                    if i.name.lower() == 'dj':
+                if i.name.lower() == 'dj':
+                    
+                    pass
 
-                        if not ctx.author.guild_permissions.administrator:
+            if not ctx.author.guild_permissions.administrator:
 
-                            return
+                return
 
 
 
@@ -704,26 +708,23 @@ class MainCog(commands.Cog):
 
                     return
 
-        message = ctx.message.content[ctx.message.content.index(':::') + 3:]
+        message = ctx.message.content[ctx.message.content.index(' ') + 1:]
 
         playlist = message[:message.index(':::')]
 
         message = urllib.parse.quote_plus(message[message.index(':::') + 3:])
 
-        await ctx.send(playlist)
+        if not os.path.exists(str(ctx.channel.guild.id)):
+            os.mkdir(str(ctx.channel.guild.id))
 
-        await ctx.send(message)
-
-        if len(os.listdir(ctx.channel.guild.id)) >= 20:
+        if len(os.listdir(str(ctx.channel.guild.id))) >= 20:
             await ctx.send('Maximum number of 20 playlists already reached')
 
         html = urllib.request.urlopen("https://www.youtube.com/results?search_query=" + message)
         
         video_id = re.findall(r"watch\?v=(\S{11})", html.read().decode())[0]
 
-        html = urllib.request.urlopen("https://www.youtube.com/results?search_query=" + message)
-
-        video_name = urllib.parse.unquote(re.findall(r'"title":{"runs":\[{"text":"(.*?)"}\]', html.read().decode())[0])
+        video_name = pafy.new(basic=False, gdata=False, url=video_id).title.replace('|', '\|').replace('*', '\*').replace('~', '\~').replace('_', '\_').replace('\\u0026', '&')
 
         file = open('{}/{}'.format(ctx.channel.guild.id, playlist), "a")
 
@@ -751,10 +752,10 @@ class MainCog(commands.Cog):
             os.remove('{}/{}'.format(ctx.channel.guild.id, playlist))
         
         except:
-            await ctx.send('Playlist {} could not be successfully deleted'.format(playlist))
+            await ctx.send('Playlist `{}` could not be successfully deleted'.format(playlist))
             return
 
-        await ctx.send('Playlist {} was successfully deleted'.format(playlist))
+        await ctx.send('Playlist `{}` was successfully deleted'.format(playlist))
 
     @commands.command(aliases=['playlistremove', 'listremove'])
     async def _playlistRemove(self, ctx):
@@ -1045,11 +1046,13 @@ class MainCog(commands.Cog):
 
             for i in ctx.author.roles:
 
-                    if i.name.lower() == 'dj':
+                if i.name.lower() == 'dj':
+                    
+                    pass
 
-                        if not ctx.author.guild_permissions.administrator:
+            if not ctx.author.guild_permissions.administrator:
 
-                            return
+                return
 
 
 
@@ -1081,11 +1084,13 @@ class MainCog(commands.Cog):
 
             for i in ctx.author.roles:
 
-                    if i.name.lower() == 'dj':
+                if i.name.lower() == 'dj':
+                    
+                    pass
 
-                        if not ctx.author.guild_permissions.administrator:
+            if not ctx.author.guild_permissions.administrator:
 
-                            return
+                return
 
 
 
@@ -1127,7 +1132,11 @@ class MainCog(commands.Cog):
             await ctx.send('Not enough songs in queue to use that command')
             return
 
+        await ctx.send(ctx.message.content)
+
         ctx.message.content = MusicBotConfig.prefix + 'p' + ctx.message.content[4:]
+
+        await ctx.send(ctx.message.content)
 
         await self._play(ctx)
 
