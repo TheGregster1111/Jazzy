@@ -363,43 +363,43 @@ class MainCog(commands.Cog):
 
         embedVar = discord.Embed(title="Commands", color=0x0e41b5)
 
-        embedVar.add_field(name='!play !p', value='Play the audio of a youtube song, playlist, or spotify playlist', inline=False)
+        embedVar.add_field(name='{0}play {0}p'.format(MusicBotConfig.prefix), value='Play the audio of a youtube song, playlist, or spotify playlist'.format(MusicBotConfig.prefix), inline=False)
 
-        embedVar.add_field(name='!playnow !pn', value='Same as !play but plays the song instantly', inline=False)
+        embedVar.add_field(name='{0}playnow {0}pn'.format(MusicBotConfig.prefix), value='Same as {0}play but plays the song instantly'.format(MusicBotConfig.prefix), inline=False)
 
-        embedVar.add_field(name='!skip !s', value='Skip current song', inline=False)
+        embedVar.add_field(name='{0}skip {0}s'.format(MusicBotConfig.prefix), value='Skip current song'.format(MusicBotConfig.prefix), inline=False)
 
-        embedVar.add_field(name='!fs !fskip !fastskip !forceskip', value='Instantly skip current song, only useable by someone with a role named DJ or an admin', inline=False)
+        embedVar.add_field(name='{0}fs {0}fskip {0}fastskip {0}forceskip'.format(MusicBotConfig.prefix), value='Instantly skip current song, only useable by someone with a role named DJ or an admin'.format(MusicBotConfig.prefix), inline=False)
 
-        embedVar.add_field(name='!queue !q', value='View the current queue', inline=False)
+        embedVar.add_field(name='{0}queue {0}q'.format(MusicBotConfig.prefix), value='View the current queue'.format(MusicBotConfig.prefix), inline=False)
 
-        embedVar.add_field(name='!remove !r', value='Remove the specified song from the queue, example: !remove 2', inline=False)
+        embedVar.add_field(name='{0}remove {0}r'.format(MusicBotConfig.prefix), value='Remove the specified song from the queue, example: {0}remove 2'.format(MusicBotConfig.prefix), inline=False)
 
-        embedVar.add_field(name='!reset', value='Reset the bot if it is malfunctioning', inline=False)
+        embedVar.add_field(name='{0}reset'.format(MusicBotConfig.prefix), value='Reset the bot if it is malfunctioning'.format(MusicBotConfig.prefix), inline=False)
 
-        embedVar.add_field(name='!pause', value='Pause the song', inline=False)
+        embedVar.add_field(name='{0}pause'.format(MusicBotConfig.prefix), value='Pause the song'.format(MusicBotConfig.prefix), inline=False)
 
-        embedVar.add_field(name='!continue !resume', value='Resume the song', inline=False)
+        embedVar.add_field(name='{0}continue {0}resume'.format(MusicBotConfig.prefix), value='Resume the song'.format(MusicBotConfig.prefix), inline=False)
 
-        embedVar.add_field(name='!loop', value='Starts or stops looping the song', inline=False)
+        embedVar.add_field(name='{0}loop'.format(MusicBotConfig.prefix), value='Starts or stops looping the song'.format(MusicBotConfig.prefix), inline=False)
 
-        embedVar.add_field(name='!leave', value='Makes the bot leave the voice chat', inline=False)
+        embedVar.add_field(name='{0}leave'.format(MusicBotConfig.prefix), value='Makes the bot leave the voice chat'.format(MusicBotConfig.prefix), inline=False)
 
-        embedVar.add_field(name='!shuffle', value='Shuffles the queue', inline=False)
+        embedVar.add_field(name='{0}shuffle'.format(MusicBotConfig.prefix), value='Shuffles the queue'.format(MusicBotConfig.prefix), inline=False)
         
-        embedVar.add_field(name='!playlistplay !listplay', value='Use "!listplay `Playlist name`" to play songs from a server playlist', inline=False)
+        embedVar.add_field(name='{0}playlistplay {0}listplay'.format(MusicBotConfig.prefix), value='Use "{0}listplay `Playlist name`" to play songs from a server playlist'.format(MusicBotConfig.prefix), inline=False)
 
-        embedVar.add_field(name='!playlistadd !listadd', value='Use "!listadd `Playlist name` `Song name`" to add a song to a server playlist', inline=False)
+        embedVar.add_field(name='{0}playlistadd {0}listadd'.format(MusicBotConfig.prefix), value='Use "{0}listadd `Playlist name` `Song name`" to add a song to a server playlist'.format(MusicBotConfig.prefix), inline=False)
 
-        embedVar.add_field(name='!playlistremove !listremove', value='Use "!listremove `Playlist name` `Song name`" to remove a song from a server playlist', inline=False)
+        embedVar.add_field(name='{0}playlistremove {0}listremove'.format(MusicBotConfig.prefix), value='Use "{0}listremove `Playlist name` `Song name`" to remove a song from a server playlist'.format(MusicBotConfig.prefix), inline=False)
 
-        embedVar.add_field(name='!removeplaylist !removelist', value='Use "!removelist `Playlist name`" to remove a server playlist', inline=False)
+        embedVar.add_field(name='{0}removeplaylist {0}removelist'.format(MusicBotConfig.prefix), value='Use "{0}removelist `Playlist name`" to remove a server playlist'.format(MusicBotConfig.prefix), inline=False)
 
-        embedVar.add_field(name='!playlists !lists', value='View all server playlists', inline=False)
+        embedVar.add_field(name='{0}playlists {0}lists'.format(MusicBotConfig.prefix), value='View all server playlists'.format(MusicBotConfig.prefix), inline=False)
 
-        embedVar.add_field(name='!playlist !list', value='Use "!list `Playlist name`" to view all songs in specified playlist', inline=False)
+        embedVar.add_field(name='{0}playlist {0}list'.format(MusicBotConfig.prefix), value='Use "{0}list `Playlist name`" to view all songs in specified playlist'.format(MusicBotConfig.prefix), inline=False)
 
-        embedVar.add_field(name='Extra stuff', value='Try making a new voice channel named "Create VC" and connecting to it', inline=False)
+        embedVar.add_field(name='Extra stuff'.format(MusicBotConfig.prefix), value='Try making a new voice channel named "Create VC" and connecting to it'.format(MusicBotConfig.prefix), inline=False)
 
         await ctx.send(
             content = None,
@@ -471,6 +471,8 @@ class MainCog(commands.Cog):
         except:
 
             pass
+
+        await ctx.send('Please report any problems you find using {0}report'.format(MusicBotConfig.prefix))
 
     @commands.command()
     async def guilds(self, ctx):
@@ -1535,7 +1537,7 @@ class MainCog(commands.Cog):
     @_play.error
     async def _play_error(self, ctx, error):
         if isinstance(error, commands.CommandOnCooldown):
-            await ctx.send('!play is on cooldown to avoid slowing down bot')
+            await ctx.send('{0}play is on cooldown to avoid slowing down bot'.format(MusicBotConfig.prefix))
 
     @commands.command()
     async def soundcloud(self, ctx):
