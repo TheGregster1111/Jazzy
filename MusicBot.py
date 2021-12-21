@@ -577,10 +577,6 @@ class MainCog(commands.Cog):
 
         server = ctx.message.guild
 
-        if len(video_ids[server.id]) < 3:
-            await ctx.send('Not enough songs in queue to shuffle')
-            return
-
         if not ctx.author.bot:
 
             vcMembers = len(server.voice_client.channel.members)
@@ -589,6 +585,13 @@ class MainCog(commands.Cog):
                 if i.bot:
                     vcMembers -= 1
 
+            if locked.get(ctx.guild.id):
+                await ctx.send("Please wait while previous playlist is being added to the queue")
+                return
+
+            if len(video_ids[server.id]) < 3:
+                await ctx.send('Not enough songs in queue to shuffle')
+                return
 
             if vcMembers > 2:
 
@@ -667,6 +670,12 @@ class MainCog(commands.Cog):
 
     @commands.command(aliases=['playlists', 'lists'])
     async def _playlists(self, ctx):
+
+        if len(os.listdir(str(ctx.channel.guild.id))) == 0:
+            
+            await ctx.send('No server playlists')
+
+            return
         
         embedVar = discord.Embed(title="Server playlists", color=0x0e41b5)
 
@@ -693,14 +702,18 @@ class MainCog(commands.Cog):
 
                     return
 
+        message = ctx.message.content[ctx.message.content.index(':::') + 3:]
+
+        playlist = message[:message.index(':::')]
+
+        message = urllib.parse.quote_plus(message[message.index(':::') + 3:])
+
+        await ctx.send(playlist)
+
+        await ctx.send(message)
+
         if len(os.listdir(ctx.channel.guild.id)) >= 20:
             await ctx.send('Maximum number of 20 playlists already reached')
-
-        message = ctx.message.content[ctx.message.content.index(' ') + 1:]
-
-        playlist = message[:message.index(' ')]
-
-        message = urllib.parse.quote_plus(message[message.index(' ') + 1:])
 
         html = urllib.request.urlopen("https://www.youtube.com/results?search_query=" + message)
         
