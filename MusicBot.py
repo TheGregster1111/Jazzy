@@ -670,8 +670,6 @@ class MainCog(commands.Cog):
         if not os.path.isfile('blacklist_servers.txt'):
             open('blacklist_servers.txt', 'w')
 
-        print('test')
-
         file = open('blacklist_users.txt', 'r')
         if os.stat('blacklist_users.txt').st_size > 0:
             for line in file.readlines():
