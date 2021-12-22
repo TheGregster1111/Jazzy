@@ -337,9 +337,9 @@ class MainCog(commands.Cog):
                         file = open('blacklist_users.txt', 'a')
                         if not userId in open('blacklist_users.txt', 'r').read():
                             file.write(str(userId) + '\n')
-                            await ctx.reply('User `{}` blacklisted'.format(await self.bot.fetch_user(userId)))
+                            await ctx.channel.send('User `{}` blacklisted'.format(await self.bot.fetch_user(userId)))
                         else:
-                            await ctx.reply('User `{}` already blacklisted'.format(await self.bot.fetch_user(userId)))
+                            await ctx.channel.send('User `{}` already blacklisted'.format(await self.bot.fetch_user(userId)))
                         file.close()
                         os.chdir("Playlists")
                     elif ctx.content[ctx.content.index(' ') + 1:].lower() == 'server':     
@@ -348,9 +348,9 @@ class MainCog(commands.Cog):
                         file = open('blacklist_servers.txt', 'a')
                         if not serverId in open('blacklist_servers.txt', 'r').read():
                             file.write(str(serverId) + '\n')
-                            await ctx.reply('Server `{}` blacklisted'.format(await self.bot.fetch_guild(serverId)))
+                            await ctx.channel.send('Server `{}` blacklisted'.format(await self.bot.fetch_guild(serverId)))
                         else:
-                            await ctx.reply('Server `{}` already blacklisted'.format(await self.bot.fetch_guild(serverId)))
+                            await ctx.channel.send('Server `{}` already blacklisted'.format(await self.bot.fetch_guild(serverId)))
                         file.close()
                         os.chdir("Playlists")
 
@@ -365,7 +365,7 @@ class MainCog(commands.Cog):
                         os.chdir("..")
                         file = open('blacklist_users.txt', 'a')
                         if not str(userId) in open('blacklist_users.txt', 'r').read():
-                            await ctx.reply('User `{}` not blacklisted'.format(await self.bot.fetch_user(userId)))
+                            await ctx.channel.send('User `{}` not blacklisted'.format(await self.bot.fetch_user(userId)))
                         else:
                             temp = open('blacklist_users.txt', 'r').readlines()
                             open('blacklist_users.txt', 'w').truncate()
@@ -375,7 +375,7 @@ class MainCog(commands.Cog):
                                 elif line.strip('\n') != str(userId):
                                     file.write(line)
                                 else:
-                                    await ctx.reply('User `{}` no longer blacklisted'.format(await self.bot.fetch_user(userId)))
+                                    await ctx.channel.send('User `{}` no longer blacklisted'.format(await self.bot.fetch_user(userId)))
                         file.write('\n')
                         file.close()
                         os.chdir("Playlists")
@@ -384,7 +384,7 @@ class MainCog(commands.Cog):
                         os.chdir("..")
                         file = open('blacklist_servers.txt', 'a')
                         if not str(serverId) in open('blacklist_servers.txt', 'r').read():
-                            await ctx.reply('Server `{}` not blacklisted'.format(await self.bot.fetch_guild(serverId)))
+                            await ctx.channel.send('Server `{}` not blacklisted'.format(await self.bot.fetch_guild(serverId)))
                         else:
                             temp = open('blacklist_servers.txt', 'r').readlines()
                             open('blacklist_servers.txt', 'w').truncate()
@@ -394,7 +394,7 @@ class MainCog(commands.Cog):
                                 elif line.strip('\n') != str(serverId):
                                     file.write(line)
                                 else:
-                                    await ctx.reply('Server `{}` no longer blacklisted'.format(await self.bot.fetch_guild(serverId)))
+                                    await ctx.channel.send('Server `{}` no longer blacklisted'.format(await self.bot.fetch_guild(serverId)))
                         file.write('\n')
                         file.close()
                         os.chdir("Playlists")
@@ -1678,3 +1678,4 @@ class MainCog(commands.Cog):
 
 def setup(bot):
     bot.add_cog(MainCog(bot))
+
