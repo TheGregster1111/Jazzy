@@ -666,11 +666,13 @@ class MainCog(commands.Cog):
         os.chdir('..')
 
         if not os.path.isfile('blacklist_users.txt'):
-            open('blacklist_users.txt', 'w')
+            open('blacklist_users.txt', 'w').close()
         if not os.path.isfile('blacklist_servers.txt'):
-            open('blacklist_servers.txt', 'w')
+            open('blacklist_servers.txt', 'w').close()
 
         file = open('blacklist_users.txt', 'r')
+
+        print('test')
         if os.stat('blacklist_users.txt').st_size > 0:
             for line in file.readlines():
                 if int(line.strip('\n')) == ctx.author.id:
