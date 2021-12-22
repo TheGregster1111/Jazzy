@@ -1,5 +1,6 @@
 from typing import Counter
 import discord
+from discord.enums import MessageType
 import discord.member
 import discord.channel
 import discord.message
@@ -16,6 +17,10 @@ import datetime
 import spotipy
 from spotipy import SpotifyClientCredentials
 from threading import Thread
+
+#regex dictionary
+#(.*?)    match unspecified length of characters
+#(?:.*?)    ignore unspecified length of characters
 
 print('Test file successfully run')
 
@@ -316,6 +321,34 @@ class MainCog(commands.Cog):
     async def on_command_error(self, ctx, error):
         print(error)
 
+    @commands.Cog.listener()
+    async def on_message(self, ctx):
+        if ctx.channel.id == 922764743540895775 and not ctx.author.bot:
+            if ctx.type == MessageType.default and ctx.reference:
+                if (ctx.content.lower().startswith('blacklist')):
+
+                    ogMessage = await ctx.channel.fetch_message(ctx.reference.message_id)
+
+                    print(ogMessage.content)
+
+                    if ctx.content[ctx.content.index(' ') + 1:].lower() == 'user':
+                        userId = re.findall(r'\`(?:.*?)\` reported by \`(.*?)\` from server \`(?:.*?)\`', ogMessage.content)[0]
+                        os.chdir("..")
+                        file = open('blacklist_users.txt', 'w')
+                        file.write(str(userId) + '\n')
+                        file.close()
+                        os.chdir("Playlists")
+                        await ctx.reply('User blacklisted')
+                    elif ctx.content[ctx.content.index(' ') + 1:].lower() == 'server':     
+                        serverId = re.findall(r'\`(?:.*?)\` reported by \`(?:.*?)\` from server \`(.*?)\`', ogMessage.content)[0]
+                        os.chdir("..")
+                        file = open('blacklist_servers.txt', 'w')
+                        file.write(str(serverId) + '\n')
+                        file.close()
+                        os.chdir("Playlists")
+                        await ctx.reply('Server blacklisted')
+
+
 
     @tasks.loop(minutes=5)
     async def clear(self):
@@ -432,19 +465,19 @@ class MainCog(commands.Cog):
         global queue
         global video_ids
 
-        allowed = False
+        if ctx.channel.guild.voice_client:
 
-        if not len(ctx.channel.guild.voice_client.channel.members) - 1 <= 2:
+            if not len(ctx.channel.guild.voice_client.channel.members) - 1 <= 2:
+                        
+                if not ctx.author.guild_permissions.administrator:
 
-            for i in ctx.author.roles:
+                    for i in ctx.author.roles:
 
-                if i.name.lower() == 'dj' or ctx.author.guild_permissions.administrator:
-                    
-                    allowed = True
+                        if i.name.lower() == 'dj':
 
-            if not allowed:
-                await ctx.send('{} You are not allowed to use this command'.format(ctx.message.author.mention))
-                return
+                            pass
+
+                    return
 
         await ctx.send('Resetting')
 
@@ -472,7 +505,7 @@ class MainCog(commands.Cog):
 
             pass
 
-        await ctx.send('Please report any problems you find using {0}report'.format(MusicBotConfig.prefix))
+        await ctx.send('Please report any problems you find using `{0}report`'.format(MusicBotConfig.prefix))
 
     @commands.command()
     async def guilds(self, ctx):
@@ -532,7 +565,7 @@ class MainCog(commands.Cog):
 
                 if self.looping.get(ctx.channel.guild.id):
 
-                    await ctx.send('Looping: {}'.format(self.looping[ctx.channel.guild.id]))
+                    await ctx.send('Looping: `{}`'.format(self.looping[ctx.channel.guild.id]))
 
                 else:
 
@@ -575,6 +608,42 @@ class MainCog(commands.Cog):
                 pass
 
     @commands.command()
+    async def report(self, ctx):
+
+        print(os.getcwd())
+
+        os.chdir('..')
+
+        file = open('blacklist_users.txt', 'w')
+        for line in file.readlines():
+            if int(line.strip('\n')) == ctx.author.id:
+                await ctx.send('Unfortunately you have been blacklisted from sending reports')
+                file.close()
+                os.chdir('Playlists')
+                return
+        file.close()
+
+        file = open('blacklist_servers.txt', 'w')
+        for line in file.readlines():
+            if int(line.strip('\n')) == ctx.guild.id:
+                await ctx.send('Unfortunately this server has been blacklisted from sending reports')
+                file.close()
+                os.chdir('Playlists')
+                return
+        file.close()
+
+        os.chdir('Playlists')
+        try:
+            reportChannel = await self.bot.fetch_channel(922764743540895775)
+        except:
+            pass
+        
+        try:
+            await reportChannel.send('`{0}` reported by `{1}` from server `{2}`\n||{0}|| reported by ||{3}|| from server ||{4}||'.format(ctx.message.content[ctx.message.content.index(' ') + 1:], ctx.author.id, ctx.guild.id, ctx.author, ctx.guild))
+        except:
+            await ctx.send('Error occurred while reporting problem')
+
+    @commands.command()
     async def shuffle(self, ctx):
 
         server = ctx.message.guild
@@ -597,13 +666,13 @@ class MainCog(commands.Cog):
 
             if vcMembers > 2:
 
-                for i in ctx.author.roles:
-
-                    if i.name.lower() == 'dj':
-                        
-                        pass
-
                 if not ctx.author.guild_permissions.administrator:
+
+                    for i in ctx.author.roles:
+
+                        if i.name.lower() == 'dj':
+
+                            pass
 
                     return
 
@@ -624,13 +693,13 @@ class MainCog(commands.Cog):
 
         if not ctx.author.bot:
 
-            for i in ctx.author.roles:
-
-                if i.name.lower() == 'dj':
-                    
-                    pass
-
             if not ctx.author.guild_permissions.administrator:
+
+                for i in ctx.author.roles:
+
+                    if i.name.lower() == 'dj':
+
+                        pass
 
                 return
 
@@ -700,13 +769,15 @@ class MainCog(commands.Cog):
     @commands.command(aliases=['playlistadd', 'listadd'])
     async def _playlistAdd(self, ctx):
 
-        for i in ctx.author.roles:
+        if not ctx.author.guild_permissions.administrator:
 
-            if i.name.lower() == 'dj':
+            for i in ctx.author.roles:
 
-                if not ctx.author.guild_permissions.administrator:
+                if i.name.lower() == 'dj':
 
-                    return
+                    pass
+
+            return
 
         message = ctx.message.content[ctx.message.content.index(' ') + 1:]
 
@@ -724,7 +795,7 @@ class MainCog(commands.Cog):
         
         video_id = re.findall(r"watch\?v=(\S{11})", html.read().decode())[0]
 
-        video_name = pafy.new(basic=False, gdata=False, url=video_id).title.replace('|', '\|').replace('*', '\*').replace('~', '\~').replace('_', '\_').replace('\\u0026', '&')
+        video_name = pafy.new(basic=False, gdata=False, url=video_id).title.replace('\\u0026', '&')
 
         file = open('{}/{}'.format(ctx.channel.guild.id, playlist), "a")
 
@@ -738,13 +809,15 @@ class MainCog(commands.Cog):
 
     @commands.command(aliases=['removeplaylist', 'removelist'])
     async def _RemovePlaylist(self, ctx):
-        for i in ctx.author.roles:
+        if not ctx.author.guild_permissions.administrator:
 
-            if i.name.lower() == 'dj':
+            for i in ctx.author.roles:
 
-                if not ctx.author.guild_permissions.administrator:
+                if i.name.lower() == 'dj':
 
-                    return
+                    pass
+
+            return
 
         playlist = ctx.message.content[ctx.message.content.index(' ') + 1:]
 
@@ -760,13 +833,15 @@ class MainCog(commands.Cog):
     @commands.command(aliases=['playlistremove', 'listremove'])
     async def _playlistRemove(self, ctx):
 
-        for i in ctx.author.roles:
+        if not ctx.author.guild_permissions.administrator:
 
-            if i.name.lower() == 'dj':
+            for i in ctx.author.roles:
 
-                if not ctx.author.guild_permissions.administrator:
+                if i.name.lower() == 'dj':
 
-                    return
+                    pass
+
+            return
 
         message = ctx.message.content[ctx.message.content.index(' ') + 1:]
 
@@ -964,8 +1039,8 @@ class MainCog(commands.Cog):
 
             skipMinimum = round((vcMembers / 3) * 2)
 
-            print("Skip minimum: {}".format(skipMinimum))
-            print("VC members: {}".format(vcMembers))
+            print("Skip minimum: `{}`".format(skipMinimum))
+            print("VC members: `{}`".format(vcMembers))
             print((vcMembers / 3) * 2)
 
             if not self.skipers.get(server.id):
@@ -1032,7 +1107,7 @@ class MainCog(commands.Cog):
 
             else:
 
-                await ctx.send('{} out of {} users skipping'.format(self.skips[server.id], skipMinimum))
+                await ctx.send('`{}` out of `{}` users skipping'.format(self.skips[server.id], skipMinimum))
 
 
 
@@ -1044,17 +1119,15 @@ class MainCog(commands.Cog):
             global queue
             global video_ids
 
-            for i in ctx.author.roles:
-
-                if i.name.lower() == 'dj':
-                    
-                    pass
-
             if not ctx.author.guild_permissions.administrator:
 
+                for i in ctx.author.roles:
+
+                    if i.name.lower() == 'dj':
+
+                        pass
+
                 return
-
-
 
             server = ctx.message.guild
 
@@ -1082,25 +1155,19 @@ class MainCog(commands.Cog):
             global queue
             global video_ids
 
-            for i in ctx.author.roles:
-
-                if i.name.lower() == 'dj':
-                    
-                    pass
-
             if not ctx.author.guild_permissions.administrator:
+
+                for i in ctx.author.roles:
+
+                    if i.name.lower() == 'dj':
+
+                        pass
 
                 return
 
-
-
             index = int(ctx.message.content[ctx.message.content.index(' ') + 1:])
 
-
-
             server = ctx.message.guild
-
-
 
             if queue.get(server.id):
 
@@ -1111,16 +1178,11 @@ class MainCog(commands.Cog):
                 del(video_ids[server.id][index - 1])
 
 
-
-
-
             if server.voice_client.channel != ctx.author.voice.channel:
 
                 return
 
-
-
-            await ctx.send('Removed at {}'.format(index))
+            await ctx.send('Removed at `{}`'.format(index))
 
     @commands.command(aliases=['pn', 'playnow'])
     @commands.cooldown(1.0, 10.0, commands.BucketType.guild)
