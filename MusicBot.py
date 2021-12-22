@@ -253,7 +253,7 @@ class MainCog(commands.Cog):
 
         if before.channel is not None:
 
-            if self.bot.get_channel(before.channel.id).members == [] and before.channel.name == "Temp VC":
+            if self.bot.fetch_channel(before.channel.id).members == [] and before.channel.name == "Temp VC":
 
                 await before.channel.delete()
 
@@ -329,24 +329,75 @@ class MainCog(commands.Cog):
 
                     ogMessage = await ctx.channel.fetch_message(ctx.reference.message_id)
 
-                    print(ogMessage.content)
+                    #print(ogMessage.content)
 
                     if ctx.content[ctx.content.index(' ') + 1:].lower() == 'user':
                         userId = re.findall(r'\`(?:.*?)\` reported by \`(.*?)\` from server \`(?:.*?)\`', ogMessage.content)[0]
                         os.chdir("..")
-                        file = open('blacklist_users.txt', 'w')
-                        file.write(str(userId) + '\n')
+                        file = open('blacklist_users.txt', 'a')
+                        if not userId in open('blacklist_users.txt', 'r').read():
+                            file.write(str(userId) + '\n')
+                            await ctx.reply('User `{}` blacklisted'.format(await self.bot.fetch_user(userId)))
+                        else:
+                            await ctx.reply('User `{}` already blacklisted'.format(await self.bot.fetch_user(userId)))
                         file.close()
                         os.chdir("Playlists")
-                        await ctx.reply('User blacklisted')
                     elif ctx.content[ctx.content.index(' ') + 1:].lower() == 'server':     
                         serverId = re.findall(r'\`(?:.*?)\` reported by \`(?:.*?)\` from server \`(.*?)\`', ogMessage.content)[0]
                         os.chdir("..")
-                        file = open('blacklist_servers.txt', 'w')
-                        file.write(str(serverId) + '\n')
+                        file = open('blacklist_servers.txt', 'a')
+                        if not serverId in open('blacklist_servers.txt', 'r').read():
+                            file.write(str(serverId) + '\n')
+                            await ctx.reply('Server `{}` blacklisted'.format(await self.bot.fetch_guild(serverId)))
+                        else:
+                            await ctx.reply('Server `{}` already blacklisted'.format(await self.bot.fetch_guild(serverId)))
                         file.close()
                         os.chdir("Playlists")
-                        await ctx.reply('Server blacklisted')
+
+                elif (ctx.content.lower().startswith('unblacklist')):
+
+                    ogMessage = await ctx.channel.fetch_message(ctx.reference.message_id)
+
+                    #print(ogMessage.content)
+
+                    if ctx.content[ctx.content.index(' ') + 1:].lower() == 'user':
+                        userId = re.findall(r'\`(?:.*?)\` reported by \`(.*?)\` from server \`(?:.*?)\`', ogMessage.content)[0]
+                        os.chdir("..")
+                        file = open('blacklist_users.txt', 'a')
+                        if not str(userId) in open('blacklist_users.txt', 'r').read():
+                            await ctx.reply('User `{}` not blacklisted'.format(await self.bot.fetch_user(userId)))
+                        else:
+                            temp = open('blacklist_users.txt', 'r').readlines()
+                            open('blacklist_users.txt', 'w').truncate()
+                            for line in temp:
+                                if line == '\n':
+                                    pass
+                                elif line.strip('\n') != str(userId):
+                                    file.write(line)
+                                else:
+                                    await ctx.reply('User `{}` no longer blacklisted'.format(await self.bot.fetch_user(userId)))
+                        file.write('\n')
+                        file.close()
+                        os.chdir("Playlists")
+                    elif ctx.content[ctx.content.index(' ') + 1:].lower() == 'server':     
+                        serverId = re.findall(r'\`(?:.*?)\` reported by \`(?:.*?)\` from server \`(.*?)\`', ogMessage.content)[0]
+                        os.chdir("..")
+                        file = open('blacklist_servers.txt', 'a')
+                        if not str(serverId) in open('blacklist_servers.txt', 'r').read():
+                            await ctx.reply('Server `{}` not blacklisted'.format(await self.bot.fetch_guild(serverId)))
+                        else:
+                            temp = open('blacklist_servers.txt', 'r').readlines()
+                            open('blacklist_servers.txt', 'w').truncate()
+                            for line in temp:
+                                if line == '\n':
+                                    pass
+                                elif line.strip('\n') != str(serverId):
+                                    file.write(line)
+                                else:
+                                    await ctx.reply('Server `{}` no longer blacklisted'.format(await self.bot.fetch_guild(serverId)))
+                        file.write('\n')
+                        file.close()
+                        os.chdir("Playlists")
 
 
 
@@ -614,22 +665,31 @@ class MainCog(commands.Cog):
 
         os.chdir('..')
 
-        file = open('blacklist_users.txt', 'w')
-        for line in file.readlines():
-            if int(line.strip('\n')) == ctx.author.id:
-                await ctx.send('Unfortunately you have been blacklisted from sending reports')
-                file.close()
-                os.chdir('Playlists')
-                return
+        if not os.path.isfile('blacklist_users.txt'):
+            open('blacklist_users.txt', 'w')
+        if not os.path.isfile('blacklist_servers.txt'):
+            open('blacklist_servers.txt', 'w')
+
+        print('test')
+
+        file = open('blacklist_users.txt', 'r')
+        if os.stat('blacklist_users.txt').st_size > 0:
+            for line in file.readlines():
+                if int(line.strip('\n')) == ctx.author.id:
+                    await ctx.send('Unfortunately you have been blacklisted from sending reports')
+                    file.close()
+                    os.chdir('Playlists')
+                    return
         file.close()
 
-        file = open('blacklist_servers.txt', 'w')
-        for line in file.readlines():
-            if int(line.strip('\n')) == ctx.guild.id:
-                await ctx.send('Unfortunately this server has been blacklisted from sending reports')
-                file.close()
-                os.chdir('Playlists')
-                return
+        file = open('blacklist_servers.txt', 'r')
+        if os.stat('blacklist_servers.txt').st_size > 0:
+            for line in file.readlines():
+                if int(line.strip('\n')) == ctx.guild.id:
+                    await ctx.send('Unfortunately this server has been blacklisted from sending reports')
+                    file.close()
+                    os.chdir('Playlists')
+                    return
         file.close()
 
         os.chdir('Playlists')
