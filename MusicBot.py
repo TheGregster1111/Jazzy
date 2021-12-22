@@ -253,7 +253,7 @@ class MainCog(commands.Cog):
 
         if before.channel is not None:
 
-            if self.bot.fetch_channel(before.channel.id).members == [] and before.channel.name == "Temp VC":
+            if (await self.bot.fetch_channel(before.channel.id)).members == [] and before.channel.name == "Temp VC":
 
                 await before.channel.delete()
 
