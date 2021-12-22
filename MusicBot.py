@@ -665,10 +665,10 @@ class MainCog(commands.Cog):
 
         os.chdir('..')
 
-        if not os.path.isfile('blacklist_users.txt'):
-            open('blacklist_users.txt', 'w').close()
+        if not os.path.isfile('MusicBot/blacklist_users.txt'):
+            open('blacklist_users.txt', 'w').write('\n')
         if not os.path.isfile('blacklist_servers.txt'):
-            open('blacklist_servers.txt', 'w').close()
+            open('Musicbot/blacklist_servers.txt', 'w').write('\n')
 
         file = open('blacklist_users.txt', 'r')
 
