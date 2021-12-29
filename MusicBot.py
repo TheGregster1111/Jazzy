@@ -521,14 +521,17 @@ class MainCog(commands.Cog):
             if not len(ctx.channel.guild.voice_client.channel.members) - 1 <= 2:
                         
                 if not ctx.author.guild_permissions.administrator:
+                    
+                    temp = False
 
                     for i in ctx.author.roles:
 
                         if i.name.lower() == 'dj':
 
-                            pass
+                            temp = True
 
-                    return
+                    if not temp:
+                        return
 
         await ctx.send('Resetting')
 
@@ -759,13 +762,16 @@ class MainCog(commands.Cog):
 
                 if not ctx.author.guild_permissions.administrator:
 
+                    temp = False
+
                     for i in ctx.author.roles:
 
                         if i.name.lower() == 'dj':
 
-                            pass
+                            temp = True
 
-                    return
+                    if not temp:
+                        return
 
         temp = list(zip(queue[server.id], video_ids[server.id][1:]))
 
@@ -786,13 +792,16 @@ class MainCog(commands.Cog):
 
             if not ctx.author.guild_permissions.administrator:
 
+                temp = False
+
                 for i in ctx.author.roles:
 
                     if i.name.lower() == 'dj':
 
-                        pass
+                        temp = True
 
-                return
+                if not temp:
+                    return
 
 
 
@@ -862,13 +871,16 @@ class MainCog(commands.Cog):
 
         if not ctx.author.guild_permissions.administrator:
 
+            temp = False
+
             for i in ctx.author.roles:
 
                 if i.name.lower() == 'dj':
 
-                    pass
+                    temp = True
 
-            return
+            if not temp:
+                return
 
         message = ctx.message.content[ctx.message.content.index(' ') + 1:]
 
@@ -902,13 +914,16 @@ class MainCog(commands.Cog):
     async def _RemovePlaylist(self, ctx):
         if not ctx.author.guild_permissions.administrator:
 
+            temp = False
+
             for i in ctx.author.roles:
 
                 if i.name.lower() == 'dj':
 
-                    pass
+                    temp = True
 
-            return
+            if not temp:
+                return
 
         playlist = ctx.message.content[ctx.message.content.index(' ') + 1:]
 
@@ -926,13 +941,16 @@ class MainCog(commands.Cog):
 
         if not ctx.author.guild_permissions.administrator:
 
+            temp = False
+
             for i in ctx.author.roles:
 
                 if i.name.lower() == 'dj':
 
-                    pass
+                    temp = True
 
-            return
+            if not temp:
+                return
 
         message = ctx.message.content[ctx.message.content.index(' ') + 1:]
 
@@ -1212,13 +1230,16 @@ class MainCog(commands.Cog):
 
             if not ctx.author.guild_permissions.administrator:
 
+                temp = False
+
                 for i in ctx.author.roles:
 
                     if i.name.lower() == 'dj':
 
-                        pass
+                        temp = True
 
-                return
+                if not temp:
+                    return
 
             server = ctx.message.guild
 
@@ -1248,13 +1269,16 @@ class MainCog(commands.Cog):
 
             if not ctx.author.guild_permissions.administrator:
 
+                temp = False
+
                 for i in ctx.author.roles:
 
                     if i.name.lower() == 'dj':
 
-                        pass
+                        temp = True
 
-                return
+                if not temp:
+                    return
 
             index = int(ctx.message.content[ctx.message.content.index(' ') + 1:])
 
