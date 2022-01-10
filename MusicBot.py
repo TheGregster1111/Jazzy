@@ -1219,7 +1219,8 @@ class MainCog(commands.Cog):
                 await ctx.send('`{}` out of `{}` users skipping'.format(self.skips[server.id], skipMinimum))
 
 
-
+    
+    @commands.cooldown(1.0, 3.0, commands.BucketType.guild)
     @commands.command(aliases=['fs', 'fskip', 'fastskip', 'forceskip'])
     async def _fskip(self, ctx):
 
@@ -1724,6 +1725,12 @@ class MainCog(commands.Cog):
     async def _play_error(self, ctx, error):
         if isinstance(error, commands.CommandOnCooldown):
             await ctx.send('{0}play is on cooldown to avoid slowing down bot'.format(MusicBotConfig.prefix))
+
+    @_fskip.error
+    async def _play_error(self, ctx, error):
+        if isinstance(error, commands.CommandOnCooldown):
+            pass
+            #await ctx.send('{0}play is on cooldown to avoid slowing down bot'.format(MusicBotConfig.prefix))
 
     @commands.command()
     async def soundcloud(self, ctx):
