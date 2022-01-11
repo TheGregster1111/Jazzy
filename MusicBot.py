@@ -1543,11 +1543,16 @@ class MainCog(commands.Cog):
 
                 ctx.message.content = re.sub(r'watch\?v=(\S{11})&', "playlist?", ctx.message.content)[4:]
 
+                #print(ctx.message.content)
+
+                playlist = pafy.get_playlist2(ctx.message.content)
+
+                searchterms[server.id] = []
+
+                for i in playlist:
+                    searchterms[server.id].append(i.videoid)
+
                 locked[server.id] = True
-
-                html = urllib.request.urlopen(ctx.message.content)
-
-                searchterms[server.id] = re.findall(r"watch\?v=(\S{11})", html.read().decode())
 
                 print(searchterms)
                     
