@@ -46,6 +46,7 @@ class MainCog(commands.Cog):
         os.chdir('Playlists')
 
     spotify = spotipy.Spotify(client_credentials_manager=SpotifyClientCredentials(MusicBotConfig.client_id, MusicBotConfig.client_secret))
+    pafy.set_api_key(MusicBotConfig.ytKey)
 
     global video_ids
     video_ids = {}
@@ -1684,9 +1685,10 @@ class MainCog(commands.Cog):
                 except:
 
                     video_ids[server.id] = [re.findall(r"watch\?v=(\S{11})", html.read().decode())[0]]
-                    
-                song = pafy.new(basic=False, gdata=False, url=video_ids[server.id][len(video_ids[server.id]) - 1])
 
+                song = pafy.new(basic=False, gdata=False, url=video_ids[server.id][len(video_ids[server.id]) - 1])
+                print('tessst')
+                print('/// {} ///'.format(song))
                 try:
 
                     queue[server.id].append(song.title.replace('|', '\|').replace('*', '\*').replace('~', '\~').replace('_', '\_').replace('\\u0026', '&'))
@@ -1694,12 +1696,27 @@ class MainCog(commands.Cog):
                 except:
 
                     queue[server.id] = [song.title.replace('|', '\|').replace('*', '\*').replace('~', '\~').replace('_', '\_').replace('\\u0026', '&')]
+                print('tessst')
+                try:
+                    queue[server.id][len(queue[server.id]) - 1] += '   **Duration: {}**'.format(song.duration)
+                except:
+                    print('cum')
 
-                queue[server.id][len(queue[server.id]) - 1] += '   **Duration: {}**'.format(song.duration)
 
-            song = pafy.new(basic=False, gdata=False, url=video_ids[server.id][0])
+
+            try:
+                song = pafy.new(basic=False, gdata=False, url=video_ids[server.id][0])
+
+            except OSError as e:
+                print("{}    aaaaaaa".format(e))
+
+            print('audio')
 
             audio = song.getbestaudio()
+
+            print('audio')
+
+            print('Audio URL: "{}"'.format(audio.url))
 
             if not voice_channel.is_playing():
 
@@ -1723,8 +1740,19 @@ class MainCog(commands.Cog):
 
     @_play.error
     async def _play_error(self, ctx, error):
+        print('//\\\\{}//\\\\'.format(error))
         if isinstance(error, commands.CommandOnCooldown):
             await ctx.send('{0}play is on cooldown to avoid slowing down bot'.format(MusicBotConfig.prefix))
+
+        elif str(error) == 'Command raised an exception: OSError: ERROR: Sign in to confirm your age\nThis video may be inappropriate for some users.':
+            
+            await ctx.send('Jazzy is currently not able to play age restricted videos due to restrictions by YouTube')
+            
+            try:
+                del(video_ids[ctx.guild.id][len(video_ids[ctx.guild.id]) - 1])
+            except:
+                pass
+            pass
 
     @_fskip.error
     async def _play_error(self, ctx, error):
