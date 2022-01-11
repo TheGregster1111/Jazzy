@@ -1,6 +1,7 @@
 from typing import Counter
 import discord
 from discord.enums import MessageType
+from discord.ext.commands import errors
 import discord.member
 import discord.channel
 import discord.message
@@ -1417,6 +1418,11 @@ class MainCog(commands.Cog):
 
                     await channel.connect()
 
+            if not queue.get(server.id):
+                queue[server.id] = []
+            if not video_ids.get(server.id):
+                video_ids[server.id] = []
+
             if re.match(r"https://open.spotify.com/track/(\S{34})", ctx.message.content[ctx.message.content.index(' ') + 1:]):
                 
                 try:
@@ -1676,8 +1682,6 @@ class MainCog(commands.Cog):
 
                 html = urllib.request.urlopen("https://www.youtube.com/results?search_query=" + name)
 
-                print("test")
-
                 try:
 
                     video_ids[server.id].append(re.findall(r"watch\?v=(\S{11})", html.read().decode())[0])
@@ -1687,8 +1691,7 @@ class MainCog(commands.Cog):
                     video_ids[server.id] = [re.findall(r"watch\?v=(\S{11})", html.read().decode())[0]]
 
                 song = pafy.new(basic=False, gdata=False, url=video_ids[server.id][len(video_ids[server.id]) - 1])
-                print('tessst')
-                print('/// {} ///'.format(song))
+                
                 try:
 
                     queue[server.id].append(song.title.replace('|', '\|').replace('*', '\*').replace('~', '\~').replace('_', '\_').replace('\\u0026', '&'))
@@ -1696,11 +1699,8 @@ class MainCog(commands.Cog):
                 except:
 
                     queue[server.id] = [song.title.replace('|', '\|').replace('*', '\*').replace('~', '\~').replace('_', '\_').replace('\\u0026', '&')]
-                print('tessst')
-                try:
-                    queue[server.id][len(queue[server.id]) - 1] += '   **Duration: {}**'.format(song.duration)
-                except:
-                    print('cum')
+                
+                queue[server.id][len(queue[server.id]) - 1] += '   **Duration: {}**'.format(song.duration)
 
 
 
@@ -1710,30 +1710,27 @@ class MainCog(commands.Cog):
             except OSError as e:
                 print("{}    aaaaaaa".format(e))
 
-            print('audio')
-
             audio = song.getbestaudio()
 
-            print('audio')
-
-            print('Audio URL: "{}"'.format(audio.url))
+            #print('Audio URL: "{}"'.format(audio.url))
 
             if not voice_channel.is_playing():
 
                 voice_channel.play(discord.FFmpegPCMAudio(audio.url, **self.ffmpegPCM_options), after=lambda e: self.stop_playing(server))
-
+                
                 await ctx.send('Now playing: `{}`'.format(re.sub(r'   \*\*Duration: (.*?)\*\*', "", queue[server.id][0]).replace('\\', '')))
-
+                
                 del(queue[server.id][0])
-
+                
                 if len(queue[server.id]) == 0:
 
                     del(queue[server.id])
 
-                if len(queue[ctx.guild.id]) >= maxSize:
-                    await ctx.send('Maximum queue size reached')
+                if queue.get(server.id):
+                    if len(queue[ctx.guild.id]) >= maxSize:
+                        await ctx.send('Maximum queue size reached')
 
-                    queue = queue[:maxSize]
+                        queue = queue[:maxSize]
 
             else:
                 await ctx.send('Added to queue: `{}`'.format(re.sub(r'   \*\*Duration: (.*?)\*\*', "", queue[server.id][len(queue[server.id]) - 1]).replace('\\', '')))
@@ -1741,12 +1738,13 @@ class MainCog(commands.Cog):
     @_play.error
     async def _play_error(self, ctx, error):
         print('//\\\\{}//\\\\'.format(error))
+        print(type(error))
         if isinstance(error, commands.CommandOnCooldown):
             await ctx.send('{0}play is on cooldown to avoid slowing down bot'.format(MusicBotConfig.prefix))
 
-        elif str(error) == 'Command raised an exception: OSError: ERROR: Sign in to confirm your age\nThis video may be inappropriate for some users.':
+        elif isinstance(error, commands.CommandInvokeError): #str(error) == 'Command raised an exception: OSError: ERROR: Sign in to confirm your age\nThis video may be inappropriate for some users.':
             
-            await ctx.send('Jazzy is currently not able to play age restricted videos due to restrictions by YouTube')
+            await ctx.send('You may have tried playing an age restricted video, Jazzy is currently not able to play age restricted videos due to restrictions by YouTube')
             
             try:
                 del(video_ids[ctx.guild.id][len(video_ids[ctx.guild.id]) - 1])
@@ -1755,7 +1753,7 @@ class MainCog(commands.Cog):
             pass
 
     @_fskip.error
-    async def _play_error(self, ctx, error):
+    async def _fskip_error(self, ctx, error):
         if isinstance(error, commands.CommandOnCooldown):
             pass
             #await ctx.send('{0}play is on cooldown to avoid slowing down bot'.format(MusicBotConfig.prefix))
