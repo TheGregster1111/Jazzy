@@ -138,6 +138,42 @@ class MainCog(commands.Cog):
 
             if self.looping[server.id] is False:
 
+                try:
+
+                    del(queue[server.id][0])
+
+
+
+                    if len(queue[server.id]) == 0:
+
+                        del(queue[server.id])
+
+
+                    del(video_ids[server.id][0])
+
+
+
+                    if len(video_ids[server.id]) == 0:
+
+                        del(video_ids[server.id])
+
+                except:
+
+                    pass
+
+        else:
+
+            try:
+
+                del(queue[server.id][0])
+
+
+
+                if len(queue[server.id]) == 0:
+
+                    del(queue[server.id])
+
+
                 del(video_ids[server.id][0])
 
 
@@ -146,15 +182,9 @@ class MainCog(commands.Cog):
 
                     del(video_ids[server.id])
 
-        else:
+            except:
 
-            del(video_ids[server.id][0])
-
-
-
-            if len(video_ids[server.id]) == 0:
-
-                del(video_ids[server.id])
+                pass
 
 
 
@@ -419,24 +449,6 @@ class MainCog(commands.Cog):
             if not i.is_playing() and video_ids.get(i.guild.id):
 
                 song = pafy.new(basic=False, gdata=False, url=video_ids[i.guild.id][0])
-
-
-
-                try:
-
-                    del(queue[i.guild.id][0])
-
-
-
-                    if len(queue[i.guild.id]) == 0:
-
-                        del(queue[i.guild.id])
-
-                except:
-
-                    pass
-
-
 
                 audio = song.getbestaudio()
 
@@ -1251,6 +1263,12 @@ class MainCog(commands.Cog):
             await ctx.send('Skipping')
 
             del(self.skips[server.id])
+            
+            del(queue[server.id][0])
+
+            if len(queue[server.id]) == 0:
+
+                del(queue[server.id])
 
             if len(video_ids[ctx.channel.guild.id]) == 0:
 
