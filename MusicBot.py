@@ -355,7 +355,7 @@ class MainCog(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message(self, ctx):
-        if ctx.channel.id == 922764743540895775 and not ctx.author.bot:
+        if ctx.channel.id == MusicBotConfig.reportChannel and not ctx.author.bot:
             if ctx.type == MessageType.default and ctx.reference:
                 if (ctx.content.lower().startswith('blacklist')):
 
@@ -742,14 +742,99 @@ class MainCog(commands.Cog):
         os.chdir('Playlists')
         print(os.getcwd())
         try:
-            reportChannel = await self.bot.fetch_channel(922764743540895775)
+            reportChannel = await self.bot.fetch_channel(MusicBotConfig.reportChannel)
         except:
             pass
         
         try:
             await reportChannel.send('`{0}` reported by `{1}` from server `{2}`\n||{0}|| reported by ||{3}|| from server ||{4}||'.format(ctx.message.content[ctx.message.content.index(' ') + 1:], ctx.author.id, ctx.guild.id, ctx.author, ctx.guild))
         except:
-            await ctx.send('Error occurred while reporting problem')
+            await ctx.send('Error occurred while reporting problem. Error code: 01')
+
+        try:
+            try:
+
+                embedVar = discord.Embed(title="Visible queue", color=0x0e41b5)
+
+                embedVar.description = ''
+
+                for video in queue.get(ctx.channel.guild.id):
+
+                    embedVar.description += video.replace('+', ' ') + '\n'
+
+                await reportChannel.send(embed=embedVar)
+
+            except:
+
+                pass
+
+
+
+            try:
+
+                embedVar = discord.Embed(title="Hidden queue", color=0x0e41b5)
+
+                embedVar.description = ''
+
+                for video in video_ids.get(ctx.channel.guild.id):
+
+                    embedVar.description += video.replace('+', ' ') + '\n'
+
+                await reportChannel.send(embed=embedVar)
+
+            except:
+
+                pass
+
+
+
+            try:
+
+                if self.looping.get(ctx.channel.guild.id):
+
+                    await reportChannel.send('Looping: `{}`'.format(self.looping[ctx.channel.guild.id]))
+
+                else:
+
+                    await reportChannel.send('Looping: False')
+
+            except:
+
+                pass
+
+
+
+            try:
+
+                if ctx.channel.guild.voice_client:
+
+                    await reportChannel.send('Voice active: {}'.format(ctx.channel.guild.voice_client.is_playing()))
+
+                else:
+
+                    await reportChannel.send('Voice active: False')
+
+            except:
+
+                pass
+
+
+
+            try:
+                counter = 0
+
+                if self.bot.voice_clients:
+                    for i in self.bot.voice_clients:
+                        if i.is_playing():
+                            counter += 1
+
+                await reportChannel.send('Voice active in {} servers\nPlaying in {} servers'.format(len(self.bot.voice_clients), counter))
+
+            except:
+
+                pass
+        except:
+            await ctx.send('Error occurred while reporting problem. Error code: 02')
 
     @commands.command()
     async def shuffle(self, ctx):
@@ -1234,7 +1319,7 @@ class MainCog(commands.Cog):
 
 
     
-    @commands.cooldown(1.0, 3.0, commands.BucketType.guild)
+    @commands.cooldown(1.0, MusicBotConfig.cooldown / 5 * 3, commands.BucketType.guild)
     @commands.command(aliases=['fs', 'fskip', 'fastskip', 'forceskip'])
     async def _fskip(self, ctx):
 
@@ -1321,7 +1406,7 @@ class MainCog(commands.Cog):
             await ctx.send('Removed at `{}`'.format(index))
 
     @commands.command(aliases=['pn', 'playnow'])
-    @commands.cooldown(1.0, 10.0, commands.BucketType.guild)
+    @commands.cooldown(1.0, MusicBotConfig.cooldown * 2, commands.BucketType.guild)
     async def _playnow(self, ctx):
 
         server = ctx.message.guild
@@ -1363,7 +1448,7 @@ class MainCog(commands.Cog):
         await self.playFromList()
 
     @commands.command(aliases=['p', 'play'])
-    @commands.cooldown(1.0, 5.0, commands.BucketType.guild)
+    @commands.cooldown(1.0, MusicBotConfig.cooldown, commands.BucketType.guild)
     async def _play(self, ctx):
 
         global serverplaylist
@@ -1767,7 +1852,7 @@ class MainCog(commands.Cog):
 
         elif isinstance(error, commands.CommandInvokeError): #str(error) == 'Command raised an exception: OSError: ERROR: Sign in to confirm your age\nThis video may be inappropriate for some users.':
             
-            await ctx.send('You may have tried playing an age restricted video, Jazzy is currently not able to play age restricted videos due to restrictions by YouTube')
+            await ctx.send('You may have tried playing an age restricted video, Jazzy is currently not able to play age restricted videos due to restrictions by YouTube. Error code: 03')
             
             try:
                 del(video_ids[ctx.guild.id][len(video_ids[ctx.guild.id]) - 1])
