@@ -151,6 +151,11 @@ class MainCog(commands.Cog):
 
                         del(queue[server.id])
 
+                except:
+
+                    pass
+
+                try:
 
                     del(video_ids[server.id][0])
 
@@ -176,6 +181,11 @@ class MainCog(commands.Cog):
 
                     del(queue[server.id])
 
+            except:
+
+                pass
+
+            try:
 
                 del(video_ids[server.id][0])
 
