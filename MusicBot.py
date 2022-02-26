@@ -7,7 +7,7 @@ import discord.channel
 import discord.message
 import discord.voice_client
 from discord.ext import commands, tasks
-from discord_components import Button, ButtonStyle
+from discord_components import Button, ButtonStyle, ComponentsBot
 import os
 import random
 import MusicBotConfig
@@ -71,6 +71,9 @@ class MainCog(commands.Cog):
 
     global searchterms
     searchterms = {}
+
+    global errorLog
+    errorLog = {}
     
     maxSize = 60
 
@@ -505,11 +508,6 @@ class MainCog(commands.Cog):
             components=[
             [
             Button(
-                label = "Website",
-                style = ButtonStyle.URL,
-                url = 'http://gamebothosting.unaux.com/'
-            ),
-            Button(
                 label = "Discord",
                 style = ButtonStyle.URL,
                 url = 'https://discord.gg/qpP4CZABJx'
@@ -529,6 +527,7 @@ class MainCog(commands.Cog):
 
         global queue
         global video_ids
+        global errorLog
 
         if ctx.channel.guild.voice_client:
 
@@ -548,6 +547,7 @@ class MainCog(commands.Cog):
                         return
 
         await ctx.send('Resetting')
+        errorLog[ctx.guild.id] = ['[{}]   Was reset.'.format(datetime.datetime.now().time())]
 
         try:
 
@@ -836,6 +836,17 @@ class MainCog(commands.Cog):
         except:
             await ctx.send('Error occurred while reporting problem. Error code: 02')
 
+        await ctx.send(
+            content = "`Would you like to send an error log to help fix the problem?`",
+            components=[
+                Button(
+                label = "Send",
+                style = ButtonStyle.blue,
+                custom_id = "error_log"
+            )
+            ]
+        )
+
     @commands.command()
     async def shuffle(self, ctx):
 
@@ -886,6 +897,7 @@ class MainCog(commands.Cog):
             
     @commands.command(aliases=['leave'])
     async def _leave(self, ctx):
+        global errorLog
 
         if not ctx.author.bot:
 
@@ -902,7 +914,7 @@ class MainCog(commands.Cog):
                 if not temp:
                     return
 
-
+            del(errorLog[ctx.guild.id])
 
             await ctx.message.guild.voice_client.disconnect()
 
@@ -1456,6 +1468,7 @@ class MainCog(commands.Cog):
         global video_ids
         global locked
         global searchterms 
+        global errorLog
 
         if not ctx.author.bot:
 
@@ -1495,6 +1508,8 @@ class MainCog(commands.Cog):
 
                 voice_channel = server.voice_client
 
+                errorLog[ctx.guild.id] = ['[{}]   Joined VC.'.format(datetime.datetime.now().time())]
+
 
 
             elif not server.voice_client.is_connected():
@@ -1502,6 +1517,8 @@ class MainCog(commands.Cog):
                 await channel.connect()
 
                 voice_channel = server.voice_client
+
+                errorLog[ctx.guild.id] = ['[{}]   Joined VC.'.format(datetime.datetime.now().time())]
 
 
 
@@ -1520,6 +1537,8 @@ class MainCog(commands.Cog):
                     server.voice_client.disconnect()
 
                     await channel.connect()
+
+                    errorLog[ctx.guild.id] = ['[{}]   Joined VC.'.format(datetime.datetime.now().time())]
 
             if not queue.get(server.id):
                 queue[server.id] = []
@@ -1578,6 +1597,8 @@ class MainCog(commands.Cog):
 
                     voice_channel = server.voice_client
 
+                    errorLog[ctx.guild.id] = ['[{}]   Joined VC.'.format(datetime.datetime.now().time())]
+
 
 
                 elif not server.voice_client.is_connected():
@@ -1585,6 +1606,8 @@ class MainCog(commands.Cog):
                     await channel.connect()
 
                     voice_channel = server.voice_client
+
+                    errorLog[ctx.guild.id] = ['[{}]   Joined VC.'.format(datetime.datetime.now().time())]
 
 
 
@@ -1603,6 +1626,8 @@ class MainCog(commands.Cog):
                         server.voice_client.disconnect()
 
                         await channel.connect()
+
+                        errorLog[ctx.guild.id] = ['[{}]   Joined VC.'.format(datetime.datetime.now().time())]
 
                 
 
@@ -1714,6 +1739,8 @@ class MainCog(commands.Cog):
 
                     voice_channel = server.voice_client
 
+                    errorLog[ctx.guild.id] = ['[{}]   Joined VC.'.format(datetime.datetime.now().time())]
+
 
 
                 elif not server.voice_client.is_connected():
@@ -1721,6 +1748,8 @@ class MainCog(commands.Cog):
                     await channel.connect()
 
                     voice_channel = server.voice_client
+
+                    errorLog[ctx.guild.id] = ['[{}]   Joined VC.'.format(datetime.datetime.now().time())]
 
 
 
@@ -1810,8 +1839,6 @@ class MainCog(commands.Cog):
                 
                 queue[server.id][len(queue[server.id]) - 1] += '   **Duration: {}**'.format(song.duration)
 
-
-
             try:
                 song = pafy.new(basic=False, gdata=False, url=video_ids[server.id][0])
 
@@ -1821,6 +1848,11 @@ class MainCog(commands.Cog):
             audio = song.getbestaudio()
 
             #print('Audio URL: "{}"'.format(audio.url))
+
+            if not errorLog[ctx.guild.id][0]:
+                errorLog[ctx.guild.id] = ['[{}]   Used in VC despite no recorded connection'.format(datetime.datetime.now().time())]
+
+            errorLog[ctx.guild.id][0] += '\n\n[{}]   Added to queue: `{}`'.format(datetime.datetime.now().time(), queue[server.id][len(queue[server.id]) - 1])
 
             if not voice_channel.is_playing():
 
@@ -1865,6 +1897,35 @@ class MainCog(commands.Cog):
         if isinstance(error, commands.CommandOnCooldown):
             pass
             #await ctx.send('{0}play is on cooldown to avoid slowing down bot'.format(MusicBotConfig.prefix))
+
+    @commands.Cog.listener()
+    async def on_button_click(self, interaction):
+        global errorLog
+        print('LogFile-{}.txt'.format(interaction.guild.name))
+        if interaction.custom_id == 'error_log':
+            try:
+                reportChannel = await self.bot.fetch_channel(MusicBotConfig.reportChannel)
+
+                os.chdir('..')
+
+                log = open('LogFile-{}.txt'.format(interaction.guild.name), 'w')
+                log.write(errorLog[interaction.guild.id][0])
+                log.close()
+
+                try:
+                    await reportChannel.send(file=discord.File('LogFile-{}.txt'.format(interaction.guild.name)))
+                except:
+                    pass
+
+                os.remove('LogFile-{}.txt'.format(interaction.guild.name))
+
+                os.chdir('Playlists')
+
+                await interaction.message.delete()
+            except:
+                pass
+
+
 
     @commands.command()
     async def soundcloud(self, ctx):
