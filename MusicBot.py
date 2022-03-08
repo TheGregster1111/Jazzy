@@ -44,6 +44,11 @@ class MainCog(commands.Cog):
         except:
             pass
 
+        try:
+            os.chdir('home/pi/MusicBot')
+        except:
+            pass
+
         os.chdir('Playlists')
 
     spotify = spotipy.Spotify(client_credentials_manager=SpotifyClientCredentials(MusicBotConfig.client_id, MusicBotConfig.client_secret))
@@ -476,7 +481,7 @@ class MainCog(commands.Cog):
 
         embedVar.add_field(name='{0}play {0}p'.format(MusicBotConfig.prefix), value='Play the audio of a youtube song, playlist, or spotify playlist'.format(MusicBotConfig.prefix), inline=False)
 
-        embedVar.add_field(name='{0}playnow {0}pn'.format(MusicBotConfig.prefix), value='Same as {0}play but plays the song instantly'.format(MusicBotConfig.prefix), inline=False)
+        #embedVar.add_field(name='{0}playnow {0}pn'.format(MusicBotConfig.prefix), value='Same as {0}play but plays the song instantly'.format(MusicBotConfig.prefix), inline=False)
 
         embedVar.add_field(name='{0}skip {0}s'.format(MusicBotConfig.prefix), value='Skip current song'.format(MusicBotConfig.prefix), inline=False)
 
@@ -1427,7 +1432,7 @@ class MainCog(commands.Cog):
 
             await ctx.send('Removed at `{}`'.format(index))
 
-    @commands.command(aliases=['pn', 'playnow'])
+    """@commands.command(aliases=['pn', 'playnow'])
     @commands.cooldown(1.0, MusicBotConfig.cooldown * 2, commands.BucketType.guild)
     async def _playnow(self, ctx):
 
@@ -1467,7 +1472,7 @@ class MainCog(commands.Cog):
 
         del(video_ids[server.id][len(video_ids[server.id]) - 1])
 
-        await self.playFromList()
+        await self.playFromList()"""
 
     @commands.command(aliases=['p', 'play'])
     @commands.cooldown(1.0, MusicBotConfig.cooldown, commands.BucketType.guild)
