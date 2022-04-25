@@ -466,6 +466,8 @@ class MainCog(commands.Cog):
 
             if not i.is_playing() and video_ids.get(i.guild.id):
 
+                print('test')
+
                 song = pafy.new(basic=False, gdata=False, url=video_ids[i.guild.id][0])
 
                 audio = song.getbestaudio()
@@ -1376,7 +1378,8 @@ class MainCog(commands.Cog):
 
             del(self.skips[server.id])
             
-            del(queue[server.id][0])
+            if queue.get(server.id):
+                del(queue[server.id][0])
 
             if len(queue[server.id]) == 0:
 
@@ -1432,7 +1435,7 @@ class MainCog(commands.Cog):
 
             await ctx.send('Removed at `{}`'.format(index))
 
-    """@commands.command(aliases=['pn', 'playnow'])
+    @commands.command(aliases=['pn', 'playnow'])
     @commands.cooldown(1.0, MusicBotConfig.cooldown * 2, commands.BucketType.guild)
     async def _playnow(self, ctx):
 
@@ -1472,7 +1475,7 @@ class MainCog(commands.Cog):
 
         del(video_ids[server.id][len(video_ids[server.id]) - 1])
 
-        await self.playFromList()"""
+        await self.playFromList()
 
     @commands.command(aliases=['p', 'play'])
     @commands.cooldown(1.0, MusicBotConfig.cooldown, commands.BucketType.guild)
@@ -1549,7 +1552,7 @@ class MainCog(commands.Cog):
 
                 else:
 
-                    server.voice_client.disconnect()
+                    await server.voice_client.disconnect()
 
                     await channel.connect()
 
@@ -1638,7 +1641,7 @@ class MainCog(commands.Cog):
 
                     else:
 
-                        server.voice_client.disconnect()
+                        await server.voice_client.disconnect()
 
                         await channel.connect()
 
@@ -1780,7 +1783,7 @@ class MainCog(commands.Cog):
 
                     else:
 
-                        server.voice_client.disconnect()
+                        await server.voice_client.disconnect()
 
                         await channel.connect()
 
@@ -1950,3 +1953,4 @@ class MainCog(commands.Cog):
 
 def setup(bot):
     bot.add_cog(MainCog(bot))
+
