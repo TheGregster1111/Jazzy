@@ -18,6 +18,7 @@ import datetime
 import spotipy
 from spotipy import SpotifyClientCredentials
 from threading import Thread
+import json
 
 #regex dictionary
 #(.*?)    match unspecified length of characters
@@ -131,6 +132,8 @@ class MainCog(commands.Cog):
                     trackList.append(i["track"]["name"] + " - " + nameString)
 
         elif type == 2:
+
+            print('URL: ' + URL)
 
             results = self.spotify.track(track_id=URL)
 
@@ -517,6 +520,8 @@ class MainCog(commands.Cog):
 
         embedVar.add_field(name='{0}playlist {0}list'.format(MusicBotConfig.prefix), value='Use "{0}list `Playlist name`" to view all songs in specified playlist'.format(MusicBotConfig.prefix), inline=False)
 
+        embedVar.add_field(name='{0}genres {0}genre'.format(MusicBotConfig.prefix), value='Use "{0}genres `Spotify link to either artist or song`" to get a list of artist genres'.format(MusicBotConfig.prefix), inline=False)
+
         embedVar.add_field(name='Extra stuff'.format(MusicBotConfig.prefix), value='Try making a new voice channel named "Create VC" and connecting to it'.format(MusicBotConfig.prefix), inline=False)
 
         await ctx.send(
@@ -863,6 +868,32 @@ class MainCog(commands.Cog):
             )
             ]
         )
+
+    @commands.command(aliases=('genres', 'genre'))
+    async def _genres(self, ctx):
+        print(ctx.message.content)
+        content = ctx.message.content[ctx.message.content.index(' ') + 1:]
+        print(content)
+        if re.match(r"https://open.spotify.com/track/(\S{34})", content):
+            track = self.spotify.track(track_id=content)
+            artist =self.spotify.artist(track["artists"][0]["external_urls"]["spotify"])
+
+            genres = ''
+
+            for i in artist["genres"]:
+                genres += i + ', '
+
+            await ctx.message.reply("Artist genres: `{}`\n\n\nSpotify does not reveal song genres currently".format(genres[:-2]))
+
+        elif re.match(r"https://open.spotify.com/artist/(\S{34})", content):
+            artist =self.spotify.artist(artist_id=content)
+
+            genres = ''
+
+            for i in artist["genres"]:
+                genres += i + ', '
+
+            await ctx.message.reply("Artist genres: `{}`".format(genres[:-2]))
 
     @commands.command()
     async def shuffle(self, ctx):
