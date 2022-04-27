@@ -18,7 +18,6 @@ import datetime
 import spotipy
 from spotipy import SpotifyClientCredentials
 from threading import Thread
-import json
 
 #regex dictionary
 #(.*?)    match unspecified length of characters
@@ -1984,4 +1983,3 @@ class MainCog(commands.Cog):
 
 def setup(bot):
     bot.add_cog(MainCog(bot))
-
