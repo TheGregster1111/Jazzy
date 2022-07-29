@@ -1208,17 +1208,17 @@ class MainCog(commands.Cog):
 
         if queue.get(ctx.channel.guild.id):
 
+            if len(queue[ctx.channel.guild.id]):
 
+                embedVar = discord.Embed(title="Queue", color=0x0e41b5)
 
-            embedVar = discord.Embed(title="Queue", color=0x0e41b5)
+                embedVar.description = ''
 
-            embedVar.description = ''
+                for video in queue.get(ctx.channel.guild.id)[1:]:
 
-            for video in queue.get(ctx.channel.guild.id)[1:]:
+                    embedVar.description += video[:-8].replace('+', ' ') + '\n'
 
-                embedVar.description += video[:-8].replace('+', ' ') + '\n'
-
-            await ctx.send(embed=embedVar)
+                await ctx.send(embed=embedVar)
 
 
 
