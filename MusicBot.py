@@ -1,3 +1,4 @@
+from operator import contains
 from typing import Counter
 import discord
 from discord.enums import MessageType
@@ -45,7 +46,7 @@ class MainCog(commands.Cog):
             pass
 
         try:
-            os.chdir('home/pi/MusicBot')
+            os.chdir('/home/rasmusljung100/MusciBot')
         except:
             pass
 
@@ -80,7 +81,7 @@ class MainCog(commands.Cog):
     global errorLog
     errorLog = {}
     
-    maxSize = 60
+    maxSize = 61
 
     ffmpegPCM_options = {
 
@@ -143,6 +144,9 @@ class MainCog(commands.Cog):
 
 
     def stop_playing(self, server):
+        global errorLog
+
+        errorLog[server.id][0] += '\n\n[{}]   Stopped playing song. Queue count: `{}` ID count: `{}`'.format(datetime.datetime.now().time().strftime('%H:%M:%S'), len(queue[server.id]), len(video_ids[server.id]))
 
         if self.looping.get(server.id):
 
@@ -240,7 +244,7 @@ class MainCog(commands.Cog):
 
             try:
 
-                queue[server.id].append(re.findall(r'"title":{"runs":\[{"text":"(.*?)"}\]', html.read().decode())[0].replace('|', '\|').replace('*', '\*').replace('~', '\~').replace('_', '\_').replace('\\u0026', '&'))
+                queue[server.id].append(re.findall(r'"title":{"runs":\[{"text":"(.*?)"}\]', html.read().decode())[0].replace('|', '\|').replace('*', '\*').replace('~', '\~').replace('_', '\_').replace('\\u0026', '&') + datetime.datetime.now().time().strftime('%H:%M:%S'))
 
             except:
                 
@@ -456,6 +460,7 @@ class MainCog(commands.Cog):
     @tasks.loop(minutes=5)
     async def clear(self):
         os.system('cls' if os.name == 'nt' else 'clear')
+        #print('clear')
 
 
     @tasks.loop(seconds=5)
@@ -550,6 +555,30 @@ class MainCog(commands.Cog):
         global video_ids
         global errorLog
 
+        print('LogFile-{}.txt'.format(ctx.guild.name))
+
+        try:
+            reportChannel = await self.bot.fetch_channel(MusicBotConfig.reportChannel)
+
+            os.chdir('..')
+
+            log = open('LogFile-{}.txt'.format(ctx.guild.name), 'w')
+            log.write(errorLog[ctx.guild.id][0])
+            log.close()
+
+            try:
+                await reportChannel.send(file=discord.File('LogFile-{}.txt'.format(ctx.guild.name)))
+            except:
+                pass
+
+            os.remove('LogFile-{}.txt'.format(ctx.guild.name))
+
+            os.chdir('Playlists')
+
+            await ctx.message.delete()
+        except:
+            pass
+
         if ctx.channel.guild.voice_client:
 
             if not len(ctx.channel.guild.voice_client.channel.members) - 1 <= 2:
@@ -568,7 +597,7 @@ class MainCog(commands.Cog):
                         return
 
         await ctx.send('Resetting')
-        errorLog[ctx.guild.id] = ['[{}]   Was reset.'.format(datetime.datetime.now().time())]
+        errorLog[ctx.guild.id] = ['[{}]   Was reset.'.format(datetime.datetime.now().time().strftime('%H:%M:%S'))]
 
         try:
 
@@ -730,7 +759,15 @@ class MainCog(commands.Cog):
     @commands.command()
     async def report(self, ctx):
 
-        print(os.getcwd())
+        if (' ') in ctx.message.content:
+            if ctx.message.content[ctx.message.content.index(' ') + 1:].replace(' ', '') == '':
+                await ctx.message.reply('Error: Empty report')
+                return
+        else:
+            await ctx.message.reply('Error: Empty report')
+            return
+
+        #print(os.getcwd())
 
         os.chdir('..')
 
@@ -740,7 +777,7 @@ class MainCog(commands.Cog):
             open('blacklist_servers.txt', 'w').write('\n')
 
         file = open('blacklist_users.txt', 'r')
-        print(os.stat('blacklist_users.txt').st_size)
+        #print(os.stat('blacklist_users.txt').st_size)
         if os.stat('blacklist_users.txt').st_size > 0:
             for line in file.readlines():
                 if line.strip('temp text\n') == str(ctx.author.id):
@@ -761,7 +798,7 @@ class MainCog(commands.Cog):
         file.close()
 
         os.chdir('Playlists')
-        print(os.getcwd())
+        #print(os.getcwd())
         try:
             reportChannel = await self.bot.fetch_channel(MusicBotConfig.reportChannel)
         except:
@@ -770,103 +807,7 @@ class MainCog(commands.Cog):
         try:
             await reportChannel.send('`{0}` reported by `{1}` from server `{2}`\n||{0}|| reported by ||{3}|| from server ||{4}||'.format(ctx.message.content[ctx.message.content.index(' ') + 1:], ctx.author.id, ctx.guild.id, ctx.author, ctx.guild))
         except:
-            await ctx.send('Error occurred while reporting problem. Error code: 01')
-
-        try:
-            try:
-
-                embedVar = discord.Embed(title="Visible queue", color=0x0e41b5)
-
-                embedVar.description = ''
-
-                for video in queue.get(ctx.channel.guild.id):
-
-                    embedVar.description += video.replace('+', ' ') + '\n'
-
-                await reportChannel.send(embed=embedVar)
-
-            except:
-
-                pass
-
-
-
-            try:
-
-                embedVar = discord.Embed(title="Hidden queue", color=0x0e41b5)
-
-                embedVar.description = ''
-
-                for video in video_ids.get(ctx.channel.guild.id):
-
-                    embedVar.description += video.replace('+', ' ') + '\n'
-
-                await reportChannel.send(embed=embedVar)
-
-            except:
-
-                pass
-
-
-
-            try:
-
-                if self.looping.get(ctx.channel.guild.id):
-
-                    await reportChannel.send('Looping: `{}`'.format(self.looping[ctx.channel.guild.id]))
-
-                else:
-
-                    await reportChannel.send('Looping: False')
-
-            except:
-
-                pass
-
-
-
-            try:
-
-                if ctx.channel.guild.voice_client:
-
-                    await reportChannel.send('Voice active: {}'.format(ctx.channel.guild.voice_client.is_playing()))
-
-                else:
-
-                    await reportChannel.send('Voice active: False')
-
-            except:
-
-                pass
-
-
-
-            try:
-                counter = 0
-
-                if self.bot.voice_clients:
-                    for i in self.bot.voice_clients:
-                        if i.is_playing():
-                            counter += 1
-
-                await reportChannel.send('Voice active in {} servers\nPlaying in {} servers'.format(len(self.bot.voice_clients), counter))
-
-            except:
-
-                pass
-        except:
-            await ctx.send('Error occurred while reporting problem. Error code: 02')
-
-        await ctx.send(
-            content = "`Would you like to send an error log to help fix the problem?`",
-            components=[
-                Button(
-                label = "Send",
-                style = ButtonStyle.blue,
-                custom_id = "error_log"
-            )
-            ]
-        )
+            await ctx.message.reply('Error occurred while reporting problem.')
 
     @commands.command(aliases=('genres', 'genre'))
     async def _genres(self, ctx):
@@ -1273,9 +1214,9 @@ class MainCog(commands.Cog):
 
             embedVar.description = ''
 
-            for video in queue.get(ctx.channel.guild.id):
+            for video in queue.get(ctx.channel.guild.id)[1:]:
 
-                embedVar.description += video.replace('+', ' ') + '\n'
+                embedVar.description += video[:-8].replace('+', ' ') + '\n'
 
             await ctx.send(embed=embedVar)
 
@@ -1511,6 +1452,7 @@ class MainCog(commands.Cog):
     @commands.cooldown(1.0, MusicBotConfig.cooldown, commands.BucketType.guild)
     async def _play(self, ctx):
 
+
         global serverplaylist
         global queue
         global video_ids
@@ -1556,8 +1498,7 @@ class MainCog(commands.Cog):
 
                 voice_channel = server.voice_client
 
-                errorLog[ctx.guild.id] = ['[{}]   Joined VC.'.format(datetime.datetime.now().time())]
-
+                errorLog[ctx.guild.id] = ['[{}]   Joined VC.'.format(datetime.datetime.now().time().strftime('%H:%M:%S'))]
 
 
             elif not server.voice_client.is_connected():
@@ -1566,7 +1507,7 @@ class MainCog(commands.Cog):
 
                 voice_channel = server.voice_client
 
-                errorLog[ctx.guild.id] = ['[{}]   Joined VC.'.format(datetime.datetime.now().time())]
+                errorLog[ctx.guild.id] = ['[{}]   Joined VC.'.format(datetime.datetime.now().time().strftime('%H:%M:%S'))]
 
 
 
@@ -1586,13 +1527,14 @@ class MainCog(commands.Cog):
 
                     await channel.connect()
 
-                    errorLog[ctx.guild.id] = ['[{}]   Joined VC.'.format(datetime.datetime.now().time())]
+                    errorLog[ctx.guild.id] = ['[{}]   Joined VC.'.format(datetime.datetime.now().time().strftime('%H:%M:%S'))]
 
             if not queue.get(server.id):
                 queue[server.id] = []
             if not video_ids.get(server.id):
                 video_ids[server.id] = []
 
+            #///////////////////////////Spotify
             if re.match(r"https://open.spotify.com/track/(\S{34})", ctx.message.content[ctx.message.content.index(' ') + 1:]):
                 
                 try:
@@ -1603,7 +1545,11 @@ class MainCog(commands.Cog):
                     await ctx.send('Invalid link')
 
                 name = urllib.parse.quote_plus(searchterms[server.id][0])
+            #///////////////////////////
 
+
+
+            #///////////////////////////Spotify playlists
             if re.match(r"https://open.spotify.com/playlist/(\S{34})", ctx.message.content[ctx.message.content.index(' ') + 1:]):
                 try:
                     searchterms[server.id] = self.spotify_to_youtube(ctx.message.content[ctx.message.content.index(' ') + 1:], 1)
@@ -1623,63 +1569,6 @@ class MainCog(commands.Cog):
 
                     await ctx.send('Invalid link')
 
-                if ctx.author.voice == None:
-
-                    await ctx.send('You are not in a voice channel')
-
-                    return
-
-
-
-                server = ctx.message.guild
-
-                voice_channel = server.voice_client
-
-                channel = ctx.author.voice.channel
-
-
-
-                if server.voice_client == None:
-
-                    await channel.connect()
-
-                    voice_channel = server.voice_client
-
-                    errorLog[ctx.guild.id] = ['[{}]   Joined VC.'.format(datetime.datetime.now().time())]
-
-
-
-                elif not server.voice_client.is_connected():
-
-                    await channel.connect()
-
-                    voice_channel = server.voice_client
-
-                    errorLog[ctx.guild.id] = ['[{}]   Joined VC.'.format(datetime.datetime.now().time())]
-
-
-
-                if server.voice_client.channel != ctx.author.voice.channel:
-
-
-
-                    if len(server.voice_client.channel.members) > 1:
-
-                        await ctx.send('You have to be in the same voice channel')
-
-                        return
-
-                    else:
-
-                        await server.voice_client.disconnect()
-
-                        await channel.connect()
-
-                        errorLog[ctx.guild.id] = ['[{}]   Joined VC.'.format(datetime.datetime.now().time())]
-
-                
-
-
                 html = urllib.request.urlopen("https://www.youtube.com/results?search_query=" + urllib.parse.quote_plus(searchterms[server.id][0]))
 
                 try:
@@ -1694,7 +1583,7 @@ class MainCog(commands.Cog):
 
                 try:
 
-                    queue[server.id].append(song.title.replace('|', '\|').replace('*', '\*').replace('~', '\~').replace('_', '\_').replace('\\u0026', '&'))
+                    queue[server.id].append(song.title.replace('|', '\|').replace('*', '\*').replace('~', '\~').replace('_', '\_').replace('\\u0026', '&') + datetime.datetime.now().time().strftime('%H:%M:%S'))
 
                 except:
 
@@ -1705,13 +1594,11 @@ class MainCog(commands.Cog):
                 locked[server.id] = True
                 thread = Thread(target = self.add_to_queue, args = (searchterms, server, ctx))
                 thread.start()
+            #///////////////////////////
 
 
 
-            #///////////////////////////Playlists below
-
-
-
+            #///////////////////////////Youtube playlists
             elif (re.match(r"https://www.youtube.com/playlist\?list=(\S{34})", ctx.message.content[ctx.message.content.index(' ') + 1:]) or re.match(r"https://youtube.com/playlist\?list=(\S{34})", ctx.message.content[ctx.message.content.index(' ') + 1:]) or re.match(r"https://www.youtube.com/watch\?v=(\S{11})&list=(\S{34})", ctx.message.content[ctx.message.content.index(' ') + 1:]) or re.match(r"https://youtube.com/watch\?v=(\S{11})&list=(\S{34})", ctx.message.content[ctx.message.content.index(' ') + 1:])) and not (re.match(r"https://youtube.com/watch\?v=(\S{11})&list=(.*?)&index=(.*?)", ctx.message.content[ctx.message.content.index(' ') + 1:]) or re.match(r"https://www.youtube.com/watch\?v=(\S{11})&list=(.*?)&index=(.*?)", ctx.message.content[ctx.message.content.index(' ') + 1:])):
                 
                 #print(ctx.message.content[ctx.message.content.index(' ') + 1:])
@@ -1736,7 +1623,7 @@ class MainCog(commands.Cog):
 
                 try:
 
-                    queue[server.id].append(song.title.replace('|', '\|').replace('*', '\*').replace('~', '\~').replace('_', '\_').replace('\\u0026', '&'))
+                    queue[server.id].append(song.title.replace('|', '\|').replace('*', '\*').replace('~', '\~').replace('_', '\_').replace('\\u0026', '&') + datetime.datetime.now().time().strftime('%H:%M:%S'))
 
                 except:
 
@@ -1758,12 +1645,7 @@ class MainCog(commands.Cog):
 
                 thread = Thread(target = self.add_to_queue, args = (searchterms, server, ctx))
                 thread.start()  
-
-
-
-
-
-            #/////////////////////Playlists ^
+            #///////////////////////////
 
 
 
@@ -1787,7 +1669,7 @@ class MainCog(commands.Cog):
 
                     voice_channel = server.voice_client
 
-                    errorLog[ctx.guild.id] = ['[{}]   Joined VC.'.format(datetime.datetime.now().time())]
+                    errorLog[ctx.guild.id] = ['[{}]   Joined VC.'.format(datetime.datetime.now().time().strftime('%H:%M:%S'))]
 
 
 
@@ -1797,7 +1679,7 @@ class MainCog(commands.Cog):
 
                     voice_channel = server.voice_client
 
-                    errorLog[ctx.guild.id] = ['[{}]   Joined VC.'.format(datetime.datetime.now().time())]
+                    errorLog[ctx.guild.id] = ['[{}]   Joined VC.'.format(datetime.datetime.now().time().strftime('%H:%M:%S'))]
 
 
 
@@ -1841,7 +1723,7 @@ class MainCog(commands.Cog):
 
                         queue[server.id] = [song.title.replace('|', '\|').replace('*', '\*').replace('~', '\~').replace('_', '\_').replace('\\u0026', '&')]
 
-                    queue[server.id][len(queue[server.id]) - 1] += '   **Duration: {}**'.format(song.duration)
+                    queue[server.id][len(queue[server.id]) - 1] += '   **Duration: {}**'.format(song.duration) +  + datetime.datetime.now().time().strftime('%H:%M:%S')
 
                 serverplaylist = None
                     
@@ -1862,6 +1744,8 @@ class MainCog(commands.Cog):
                             await ctx.send('Maximum queue size reached')
 
                             serverplaylist = serverplaylist[:maxSize] #//END
+
+                print(ctx.message.content)
 
                 ctx.message.content = re.sub(r"&list=(\S{34})&index=(.*?)", "", ctx.message.content)
 
@@ -1885,7 +1769,7 @@ class MainCog(commands.Cog):
 
                     queue[server.id] = [song.title.replace('|', '\|').replace('*', '\*').replace('~', '\~').replace('_', '\_').replace('\\u0026', '&')]
                 
-                queue[server.id][len(queue[server.id]) - 1] += '   **Duration: {}**'.format(song.duration)
+                queue[server.id][len(queue[server.id]) - 1] += '   **Duration: {}**'.format(song.duration) + datetime.datetime.now().time().strftime('%H:%M:%S')
 
             try:
                 song = pafy.new(basic=False, gdata=False, url=video_ids[server.id][0])
@@ -1898,7 +1782,7 @@ class MainCog(commands.Cog):
             #print('Audio URL: "{}"'.format(audio.url))
 
             if not errorLog[ctx.guild.id][0]:
-                errorLog[ctx.guild.id] = ['[{}]   Used in VC despite no recorded connection'.format(datetime.datetime.now().time())]
+                errorLog[ctx.guild.id] = ['[{}]   Used in VC despite no recorded connection'.format(datetime.datetime.now().time().strftime('%H:%M:%S'))]
 
             errorLog[ctx.guild.id][0] += '\n\n[{}]   Added to queue: `{}`'.format(datetime.datetime.now().time(), queue[server.id][len(queue[server.id]) - 1])
 
@@ -1906,13 +1790,7 @@ class MainCog(commands.Cog):
 
                 voice_channel.play(discord.FFmpegPCMAudio(audio.url, **self.ffmpegPCM_options), after=lambda e: self.stop_playing(server))
                 
-                await ctx.send('Now playing: `{}`'.format(re.sub(r'   \*\*Duration: (.*?)\*\*', "", queue[server.id][0]).replace('\\', '')))
-                
-                del(queue[server.id][0])
-                
-                if len(queue[server.id]) == 0:
-
-                    del(queue[server.id])
+                await ctx.send('Now playing: `{}`'.format(re.sub(r'   \*\*Duration: .*', "", queue[server.id][0]).replace('\\', '')))
 
                 if queue.get(server.id):
                     if len(queue[ctx.guild.id]) >= maxSize:
@@ -1921,7 +1799,8 @@ class MainCog(commands.Cog):
                         queue = queue[:maxSize]
 
             else:
-                await ctx.send('Added to queue: `{}`'.format(re.sub(r'   \*\*Duration: (.*?)\*\*', "", queue[server.id][len(queue[server.id]) - 1]).replace('\\', '')))
+                print((queue[server.id][len(queue[server.id]) - 1]).replace('\\', ''))
+                await ctx.send('Added to queue: `{}`'.format(re.sub(r'   \*\*Duration: .*', "", queue[server.id][len(queue[server.id]) - 1]).replace('\\', '')))
 
     @_play.error
     async def _play_error(self, ctx, error):
@@ -1983,3 +1862,4 @@ class MainCog(commands.Cog):
 
 def setup(bot):
     bot.add_cog(MainCog(bot))
+
