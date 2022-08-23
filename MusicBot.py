@@ -23,6 +23,7 @@ from threading import Thread
 #regex dictionary
 #(.*?)    match unspecified length of characters
 #(?:.*?)    ignore unspecified length of characters
+#() Will add the contents to the list and is not necessary for .*? to work
 
 print('Test file successfully run')
 
