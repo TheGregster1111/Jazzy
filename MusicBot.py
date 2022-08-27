@@ -534,16 +534,21 @@ class MainCog(commands.Cog):
             embed = embedVar,
             components=[
             [
-            Button(
-                label = "Discord",
-                style = ButtonStyle.URL,
-                url = 'https://discord.gg/qpP4CZABJx'
-            ),
-            Button(
-                label = "Invite",
-                style = ButtonStyle.URL,
-                url = 'https://discord.com/api/oauth2/authorize?client_id=887684182975840296&permissions=0&scope=bot'
-            )
+                Button(
+                    label = "Discord",
+                    style = ButtonStyle.URL,
+                    url = 'https://discord.gg/qpP4CZABJx'
+                ),
+                Button(
+                    label = "Invite",
+                    style = ButtonStyle.URL,
+                    url = 'https://discord.com/api/oauth2/authorize?client_id=887684182975840296&permissions=0&scope=bot'
+                ),
+                Button(
+                    label = "Website",
+                    style = ButtonStyle.URL,
+                    url = 'http://www.https//trim-keep-354608.ew.r.appspot.com/'
+                )
             ]
             ]
         )
