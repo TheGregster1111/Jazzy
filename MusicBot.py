@@ -547,7 +547,7 @@ class MainCog(commands.Cog):
                 Button(
                     label = "Website",
                     style = ButtonStyle.URL,
-                    url = 'www.trim-keep-354608.ew.r.appspot.com/'
+                    url = 'http://www.trim-keep-354608.ew.r.appspot.com/'
                 )
             ]
             ]
