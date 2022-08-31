@@ -8,7 +8,7 @@ import discord.channel
 import discord.message
 import discord.voice_client
 from discord.ext import commands, tasks
-from discord_components import Button, ButtonStyle, ComponentsBot
+from discord.ui.button import Button
 import os
 import random
 import MusicBotConfig
@@ -536,17 +536,17 @@ class MainCog(commands.Cog):
             [
                 Button(
                     label = "Discord",
-                    style = ButtonStyle.URL,
+                    style = discord.ButtonStyle.url,
                     url = 'https://discord.gg/qpP4CZABJx'
                 ),
                 Button(
                     label = "Invite",
-                    style = ButtonStyle.URL,
+                    style = discord.ButtonStyle.url,
                     url = 'https://discord.com/api/oauth2/authorize?client_id=887684182975840296&permissions=0&scope=bot'
                 ),
                 Button(
                     label = "Website",
-                    style = ButtonStyle.URL,
+                    style = discord.ButtonStyle.url,
                     url = 'https://trim-keep-354608.ew.r.appspot.com/'
                 )
             ]
@@ -1868,4 +1868,3 @@ class MainCog(commands.Cog):
 
 def setup(bot):
     bot.add_cog(MainCog(bot))
-
