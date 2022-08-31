@@ -29,29 +29,29 @@ print('Test file successfully run')
 
 class MainCog(commands.Cog):
 
-    def __init__(self, bot):
+    def __init__(self, bot: commands.Bot):
         self.bot = bot
 
         self.playFromList.start()
         self.clear.start()
 
-        for filename in os.listdir(os.path.dirname(__file__) + '/Music_Cogs'):
+        print('test')
+
+        for filename in os.listdir(str(os.path.dirname(__file__) + '/Music_Cogs').replace('/', os.path.sep)):
 
             if filename.endswith('.py'):
 
                 self.bot.load_extension(f'Music_Cogs.{filename[:-3]}')
 
-        try:
-            os.chdir('source/repos/MusicBot')
-        except:
-            pass
+        os.chdir(os.path.dirname(__file__))
+
+        print('test')
 
         try:
-            os.chdir('/home/rasmusljung100/MusciBot')
+            os.chdir('Playlists')
         except:
-            pass
-
-        os.chdir('Playlists')
+            os.mkdir('Playlists')
+            os.chdir('Playlists')
 
     spotify = spotipy.Spotify(client_credentials_manager=SpotifyClientCredentials(MusicBotConfig.client_id, MusicBotConfig.client_secret))
     pafy.set_api_key(MusicBotConfig.ytKey)
@@ -349,10 +349,7 @@ class MainCog(commands.Cog):
     @commands.Cog.listener()
     async def on_guild_join(self, guild):
 
-        try:
-            os.chdir('/home/pi/MusciBot/Playlists')
-        except:
-            pass
+        os.chdir('/MusciBot/Playlists'.replace('/', os.path.sep))
 
         os.mkdir(str(guild.id), 'w')
 
@@ -363,10 +360,7 @@ class MainCog(commands.Cog):
     @commands.Cog.listener()
     async def on_guild_remove(self, guild):
 
-        try:
-            os.chdir('/home/pi/MusciBot/Playlists')
-        except:
-            pass
+        os.chdir('/MusciBot/Playlists'.replace('/', os.path.sep))
 
         os.rmdir(str(guild.id))
 
@@ -485,7 +479,7 @@ class MainCog(commands.Cog):
 
 
     @commands.command()
-    async def help(self, ctx):
+    async def help(self, ctx: commands.Context):
 
         embedVar = discord.Embed(title="Commands", color=0x0e41b5)
 
@@ -532,25 +526,31 @@ class MainCog(commands.Cog):
         await ctx.send(
             content = None,
             embed = embedVar,
-            components=[
-            [
+            view=discord.ui.View().add_item(
+            
                 Button(
                     label = "Discord",
                     style = discord.ButtonStyle.url,
                     url = 'https://discord.gg/qpP4CZABJx'
-                ),
+                )
+
+            ).add_item(
+
                 Button(
                     label = "Invite",
                     style = discord.ButtonStyle.url,
                     url = 'https://discord.com/api/oauth2/authorize?client_id=887684182975840296&permissions=0&scope=bot'
-                ),
+                )
+
+            ).add_item(
+
                 Button(
                     label = "Website",
                     style = discord.ButtonStyle.url,
                     url = 'https://trim-keep-354608.ew.r.appspot.com/'
                 )
-            ]
-            ]
+            
+            )
         )
 
 
@@ -777,7 +777,7 @@ class MainCog(commands.Cog):
 
         os.chdir('..')
 
-        if not os.path.isfile('MusicBot/blacklist_users.txt'):
+        if not os.path.isfile('MusicBot/blacklist_users.txt'.replace('/', os.path.sep)):
             open('blacklist_users.txt', 'w').write('\n')
         if not os.path.isfile('blacklist_servers.txt'):
             open('blacklist_servers.txt', 'w').write('\n')
@@ -789,7 +789,7 @@ class MainCog(commands.Cog):
                 if line.strip('temp text\n') == str(ctx.author.id):
                     await ctx.send('Unfortunately you have been blacklisted from sending reports')
                     file.close()
-                    os.chdir('Playlists')
+                    os.chdir('/MusciBot/Playlists'.replace('/', os.path.sep))
                     return
         file.close()
 
@@ -799,11 +799,11 @@ class MainCog(commands.Cog):
                 if line.strip('temp text\n') == str(ctx.guild.id):
                     await ctx.send('Unfortunately this server has been blacklisted from sending reports')
                     file.close()
-                    os.chdir('Playlists')
+                    os.chdir('/MusciBot/Playlists'.replace('/', os.path.sep))
                     return
         file.close()
 
-        os.chdir('Playlists')
+        os.chdir('/MusciBot/Playlists'.replace('/', os.path.sep))
         #print(os.getcwd())
         try:
             reportChannel = await self.bot.fetch_channel(MusicBotConfig.reportChannel)
@@ -920,7 +920,7 @@ class MainCog(commands.Cog):
 
         playlist = ctx.message.content[ctx.message.content.index(' ') + 1:]
 
-        file = open('{}/{}'.format(str(ctx.channel.guild.id), playlist), 'r')
+        file = open(('{}/{}'.format(str(ctx.channel.guild.id), playlist)).replace('/', os.path.sep), 'r')
         serverplaylist = []
         for line in file.readlines():
             serverplaylist.append(re.findall(r'"id":"{\[(.*?)\]}"', line)[0])
@@ -931,7 +931,7 @@ class MainCog(commands.Cog):
     async def _playlist(self, ctx):
         playlist = ctx.message.content[ctx.message.content.index(' ') + 1:]
 
-        file = open('{}/{}'.format(str(ctx.channel.guild.id), playlist), 'r')
+        file = open(('{}/{}'.format(str(ctx.channel.guild.id)).replace('/', os.path.sep), playlist), 'r')
 
         lines = file.readlines()
 
@@ -1005,7 +1005,7 @@ class MainCog(commands.Cog):
 
         video_name = pafy.new(basic=False, gdata=False, url=video_id).title.replace('\\u0026', '&')
 
-        file = open('{}/{}'.format(ctx.channel.guild.id, playlist), "a")
+        file = open(('{}/{}'.format(ctx.channel.guild.id, playlist)).replace('/', os.path.sep), "a")
 
         file.write('"title":"{{[{}]}}", "id":"{{[{}]}}"\n'.format(video_name, video_id))
 
@@ -1033,7 +1033,7 @@ class MainCog(commands.Cog):
         playlist = ctx.message.content[ctx.message.content.index(' ') + 1:]
 
         try:        
-            os.remove('{}/{}'.format(ctx.channel.guild.id, playlist))
+            os.remove(('{}/{}'.format(ctx.channel.guild.id, playlist)).replace('/', os.path.sep))
         
         except:
             await ctx.send('Playlist `{}` could not be successfully deleted'.format(playlist))
@@ -1071,13 +1071,13 @@ class MainCog(commands.Cog):
 
         video_name = urllib.parse.unquote(re.findall(r'"title":{"runs":\[{"text":"(.*?)"}\]', html.read().decode())[0])
 
-        fileR = open('{}/{}'.format(ctx.channel.guild.id, playlist), "r")
+        fileR = open(('{}/{}'.format(ctx.channel.guild.id, playlist)).replace('/', os.path.sep), "r")
 
         lines = fileR.readlines()
 
         fileR.close()
 
-        file = open('{}/{}'.format(ctx.channel.guild.id, playlist), 'w')
+        file = open(('{}/{}'.format(ctx.channel.guild.id, playlist)).replace('/', os.path.sep), 'w')
 
         for line in lines:
 
@@ -1102,9 +1102,9 @@ class MainCog(commands.Cog):
 
 
 
-        if os.stat('{}/{}'.format(ctx.channel.guild.id, playlist)).st_size == 0:
+        if os.stat(('{}/{}'.format(ctx.channel.guild.id, playlist)).replace('/', os.path.sep)).st_size == 0:
 
-            os.remove('{}/{}'.format(ctx.channel.guild.id, playlist))
+            os.remove(('{}/{}'.format(ctx.channel.guild.id, playlist)).replace('/', os.path.sep))
 
 
 
@@ -1852,7 +1852,7 @@ class MainCog(commands.Cog):
 
                 os.remove('LogFile-{}.txt'.format(interaction.guild.name))
 
-                os.chdir('Playlists')
+                os.chdir('/MusciBot/Playlists'.replace('/', os.path.sep))
 
                 await interaction.message.delete()
             except:
@@ -1866,5 +1866,5 @@ class MainCog(commands.Cog):
 
     
 
-def setup(bot):
-    bot.add_cog(MainCog(bot))
+async def setup(bot: commands.Bot):
+    await bot.add_cog(MainCog(bot))
