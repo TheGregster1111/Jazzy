@@ -1,12 +1,5 @@
-from operator import contains
-from typing import Counter
 import discord
 from discord.enums import MessageType
-from discord.ext.commands import errors
-import discord.member
-import discord.channel
-import discord.message
-import discord.voice_client
 from discord.ext import commands, tasks
 from discord.ui.button import Button
 import os
