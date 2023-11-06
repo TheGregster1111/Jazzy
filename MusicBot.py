@@ -18,17 +18,13 @@ from threading import Thread
 #(?:.*?)    ignore unspecified length of characters
 #() Will add the contents to the list and is not necessary for .*? to work
 
-print('Test file successfully run')
-
 class MainCog(commands.Cog):
 
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
         self.playFromList.start()
-        self.clear.start()
-
-        print('test')
+        #self.clear.start()
 
         for filename in os.listdir(str(os.path.dirname(__file__) + '/Music_Cogs').replace('/', os.path.sep)):
 
@@ -79,7 +75,7 @@ class MainCog(commands.Cog):
 
     ffmpegPCM_options = {
 
-        "before_options": "-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 1000",
+        "before_options": "-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 2000",
 
         'options': '-vn'
 
@@ -221,7 +217,7 @@ class MainCog(commands.Cog):
         self.playFromList()
     
 
-    def add_to_queue(self, searchterms, server, ctx):
+    def add_to_queue(self, searchterms, server, ctx:commands.context):
 
         global video_ids
         global queue
@@ -323,8 +319,6 @@ class MainCog(commands.Cog):
 
                     await before.channel.guild.voice_client.disconnect()
 
-
-
                     if queue.get(before.channel.guild.id):
 
                         del(queue[before.channel.guild.id])
@@ -362,11 +356,11 @@ class MainCog(commands.Cog):
 
 
     @commands.Cog.listener()
-    async def on_command_error(self, ctx, error):
+    async def on_command_error(self, ctx:commands.context, error):
         print(error)
 
     @commands.Cog.listener()
-    async def on_message(self, ctx):
+    async def on_message(self, ctx:commands.context):
         if ctx.channel.id == MusicBotConfig.reportChannel and not ctx.author.bot:
             if ctx.type == MessageType.default and ctx.reference:
                 if (ctx.content.lower().startswith('blacklist')):
@@ -472,7 +466,7 @@ class MainCog(commands.Cog):
 
 
     @commands.command()
-    async def help(self, ctx: commands.Context):
+    async def help(self, ctx:commands.context):
 
         embedVar = discord.Embed(title="Commands", color=0x0e41b5)
 
@@ -548,7 +542,7 @@ class MainCog(commands.Cog):
 
 
     @commands.command()
-    async def reset(self, ctx):
+    async def reset(self, ctx:commands.context):
 
         global queue
         global video_ids
@@ -625,7 +619,7 @@ class MainCog(commands.Cog):
         await ctx.send('Please report any problems you find using `{0}report`'.format(MusicBotConfig.prefix))
 
     @commands.command()
-    async def guilds(self, ctx):
+    async def guilds(self, ctx:commands.context):
         if ctx.author.id == 320837660900065291:
             message = '```'
             for i in self.bot.guilds:
@@ -635,7 +629,7 @@ class MainCog(commands.Cog):
 
 
     @commands.command()
-    async def debug(self, ctx):
+    async def debug(self, ctx:commands.context):
 
         if ctx.author.id == 320837660900065291:
 
@@ -725,7 +719,7 @@ class MainCog(commands.Cog):
                 pass
 
     @commands.command()
-    async def debugleave(self, ctx):
+    async def debugleave(self, ctx:commands.context):
         if ctx.author.id == 320837660900065291:
             guild = await self.bot.fetch_guild(int(ctx.message.content[ctx.message.content.index(' ') + 1:]))
 
@@ -756,7 +750,7 @@ class MainCog(commands.Cog):
             await guild.leave()
 
     @commands.command()
-    async def report(self, ctx):
+    async def report(self, ctx:commands.context):
 
         if (' ') in ctx.message.content:
             if ctx.message.content[ctx.message.content.index(' ') + 1:].replace(' ', '') == '':
@@ -809,7 +803,7 @@ class MainCog(commands.Cog):
             await ctx.message.reply('Error occurred while reporting problem.')
 
     @commands.command(aliases=('genres', 'genre'))
-    async def _genres(self, ctx):
+    async def _genres(self, ctx:commands.context):
         print(ctx.message.content)
         content = ctx.message.content[ctx.message.content.index(' ') + 1:]
         print(content)
@@ -835,7 +829,7 @@ class MainCog(commands.Cog):
             await ctx.message.reply("Artist genres: `{}`".format(genres[:-2]))
 
     @commands.command()
-    async def shuffle(self, ctx):
+    async def shuffle(self, ctx:commands.context):
 
         server = ctx.message.guild
 
@@ -883,7 +877,7 @@ class MainCog(commands.Cog):
         await ctx.send('Shuffling')
             
     @commands.command(aliases=['leave'])
-    async def _leave(self, ctx):
+    async def _leave(self, ctx:commands.context):
         global errorLog
 
         if not ctx.author.bot:
@@ -908,7 +902,7 @@ class MainCog(commands.Cog):
 
 
     @commands.command(aliases=['playlistplay', 'listplay'])
-    async def _playlistplay(self, ctx):
+    async def _playlistplay(self, ctx:commands.context):
         global serverplaylist
 
         playlist = ctx.message.content[ctx.message.content.index(' ') + 1:]
@@ -921,7 +915,7 @@ class MainCog(commands.Cog):
         await self._play(ctx)
 
     @commands.command(aliases=['playlist', 'list'])
-    async def _playlist(self, ctx):
+    async def _playlist(self, ctx:commands.context):
         playlist = ctx.message.content[ctx.message.content.index(' ') + 1:]
 
         file = open(('{}/{}'.format(str(ctx.channel.guild.id)).replace('/', os.path.sep), playlist), 'r')
@@ -942,7 +936,7 @@ class MainCog(commands.Cog):
         await ctx.send(embed=embedVar)
 
     @commands.command(aliases=['playlists', 'lists'])
-    async def _playlists(self, ctx):
+    async def _playlists(self, ctx:commands.context):
 
         if len(os.listdir(str(ctx.channel.guild.id))) == 0:
             
@@ -965,7 +959,7 @@ class MainCog(commands.Cog):
         await ctx.send(embed=embedVar)
 
     @commands.command(aliases=['playlistadd', 'listadd'])
-    async def _playlistAdd(self, ctx):
+    async def _playlistAdd(self, ctx:commands.context):
 
         if not ctx.author.guild_permissions.administrator:
 
@@ -1009,7 +1003,7 @@ class MainCog(commands.Cog):
 
 
     @commands.command(aliases=['removeplaylist', 'removelist'])
-    async def _RemovePlaylist(self, ctx):
+    async def _RemovePlaylist(self, ctx:commands.context):
         if not ctx.author.guild_permissions.administrator:
 
             temp = False
@@ -1035,7 +1029,7 @@ class MainCog(commands.Cog):
         await ctx.send('Playlist `{}` was successfully deleted'.format(playlist))
 
     @commands.command(aliases=['playlistremove', 'listremove'])
-    async def _playlistRemove(self, ctx):
+    async def _playlistRemove(self, ctx:commands.context):
 
         if not ctx.author.guild_permissions.administrator:
 
@@ -1104,7 +1098,7 @@ class MainCog(commands.Cog):
 
 
     @commands.command(aliases=['l', 'loop'])
-    async def _loop(self, ctx):
+    async def _loop(self, ctx:commands.context):
 
 
 
@@ -1161,7 +1155,7 @@ class MainCog(commands.Cog):
 
 
     @commands.command()
-    async def pause(self, ctx):
+    async def pause(self, ctx:commands.context):
 
         if not ctx.author.bot:
 
@@ -1182,7 +1176,7 @@ class MainCog(commands.Cog):
 
 
     @commands.command(aliases=['continue', 'resume'])
-    async def _resume(self, ctx):
+    async def _resume(self, ctx:commands.context):
 
         if not ctx.author.bot:
 
@@ -1203,7 +1197,7 @@ class MainCog(commands.Cog):
 
 
     @commands.command(aliases=['q', 'queue'])
-    async def _queue(self, ctx):
+    async def _queue(self, ctx:commands.context):
 
         if queue.get(ctx.channel.guild.id):
 
@@ -1222,7 +1216,7 @@ class MainCog(commands.Cog):
 
 
     @commands.command(aliases=['s', 'skip'])
-    async def _skip(self, ctx):
+    async def _skip(self, ctx:commands.context):
 
         if not ctx.author.bot:
 
@@ -1320,7 +1314,7 @@ class MainCog(commands.Cog):
     
     @commands.cooldown(1.0, MusicBotConfig.cooldown / 5 * 3, commands.BucketType.guild)
     @commands.command(aliases=['fs', 'fskip', 'fastskip', 'forceskip'])
-    async def _fskip(self, ctx):
+    async def _fskip(self, ctx:commands.context):
 
         if not ctx.author.bot:
 
@@ -1366,7 +1360,7 @@ class MainCog(commands.Cog):
 
 
     @commands.command(aliases=['r', 'remove'])
-    async def _remove(self, ctx):
+    async def _remove(self, ctx:commands.context):
 
         if not ctx.author.bot:
 
@@ -1407,7 +1401,7 @@ class MainCog(commands.Cog):
 
     @commands.command(aliases=['pn', 'playnow'])
     @commands.cooldown(1.0, MusicBotConfig.cooldown * 2, commands.BucketType.guild)
-    async def _playnow(self, ctx):
+    async def _playnow(self, ctx:commands.context):
 
         server = ctx.message.guild
 
@@ -1449,7 +1443,7 @@ class MainCog(commands.Cog):
 
     @commands.command(aliases=['p', 'play'])
     @commands.cooldown(1.0, MusicBotConfig.cooldown, commands.BucketType.guild)
-    async def _play(self, ctx):
+    async def _play(self, ctx:commands.context):
 
 
         global serverplaylist
@@ -1523,6 +1517,22 @@ class MainCog(commands.Cog):
                 else:
 
                     await server.voice_client.disconnect()
+
+                    try:
+
+                        del(queue[ctx.channel.guild.id])
+
+                    except:
+
+                        pass
+
+                    try:
+
+                        del(video_ids[ctx.channel.guild.id])
+
+                    except:
+
+                        pass
 
                     await channel.connect()
 
@@ -1696,6 +1706,22 @@ class MainCog(commands.Cog):
 
                         await server.voice_client.disconnect()
 
+                        try:
+
+                            del(queue[ctx.channel.guild.id])
+
+                        except:
+
+                            pass
+
+                        try:
+
+                            del(video_ids[ctx.channel.guild.id])
+
+                        except:
+
+                            pass
+
                         await channel.connect()
 
 
@@ -1802,7 +1828,7 @@ class MainCog(commands.Cog):
                 await ctx.send('Added to queue: `{}`'.format(re.sub(r'   \*\*Duration: .*', "", queue[server.id][len(queue[server.id]) - 1]).replace('\\', '')))
 
     @_play.error
-    async def _play_error(self, ctx, error):
+    async def _play_error(self, ctx:commands.context, error):
         print('//\\\\{}//\\\\'.format(error))
         print(type(error))
         if isinstance(error, commands.CommandOnCooldown):
@@ -1819,7 +1845,7 @@ class MainCog(commands.Cog):
             pass
 
     @_fskip.error
-    async def _fskip_error(self, ctx, error):
+    async def _fskip_error(self, ctx:commands.context, error):
         if isinstance(error, commands.CommandOnCooldown):
             pass
             #await ctx.send('{0}play is on cooldown to avoid slowing down bot'.format(MusicBotConfig.prefix))
@@ -1854,7 +1880,8 @@ class MainCog(commands.Cog):
 
 
     @commands.command()
-    async def soundcloud(self, ctx):
+    async def soundcloud(self, ctx:commands.context):
+        await ctx.message.reply("Not implemented yet.")
         print('sex')
 
     
