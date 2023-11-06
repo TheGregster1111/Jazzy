@@ -26,11 +26,13 @@ class MainCog(commands.Cog):
         self.playFromList.start()
         #self.clear.start()
 
-        for filename in os.listdir(str(os.path.dirname(__file__) + '/Music_Cogs').replace('/', os.path.sep)):
+        cogDir = str(os.path.dirname(__file__) + '/Music_Cogs').replace('/', os.path.sep)
+        if (os.path.exists(cogDir)):
+            for filename in os.listdir(cogDir):
 
-            if filename.endswith('.py'):
+                if filename.endswith('.py'):
 
-                self.bot.load_extension(f'Music_Cogs.{filename[:-3]}')
+                    self.bot.load_extension(f'Music_Cogs.{filename[:-3]}')
 
         os.chdir(os.path.dirname(__file__))
 
