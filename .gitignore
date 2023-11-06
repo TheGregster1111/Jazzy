@@ -1,5 +1,4 @@
-.gitignore
 JazzyWebsite
 MusicBotConfig.py
-__pycache__
+__pycache__/
 Playlists
