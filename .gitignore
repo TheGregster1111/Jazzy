@@ -1,3 +1,5 @@
-Jazzy_website
+.gitignore
+JazzyWebsite
 MusicBotConfig.py
-Base.py
+__pycache__
+Playlists
