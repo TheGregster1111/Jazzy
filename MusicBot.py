@@ -26,6 +26,8 @@ class MainCog(commands.Cog):
         self.playFromList.start()
         #self.clear.start()
 
+        print("PULL!")
+
         cogDir = str(os.path.dirname(__file__) + '/Music_Cogs').replace('/', os.path.sep)
         if (os.path.exists(cogDir)):
             for filename in os.listdir(cogDir):
