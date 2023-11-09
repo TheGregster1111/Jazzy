@@ -12,6 +12,7 @@ import datetime
 import spotipy
 from spotipy import SpotifyClientCredentials
 from threading import Thread
+import yt_dlp
 
 #regex dictionary
 #(.*?)    match unspecified length of characters
@@ -26,23 +27,13 @@ class MainCog(commands.Cog):
         self.playFromList.start()
         #self.clear.start()
 
-        cogDir = str(os.path.dirname(__file__) + '/Music_Cogs').replace('/', os.path.sep)
-        if (os.path.exists(cogDir)):
-            for filename in os.listdir(cogDir):
-
-                if filename.endswith('.py'):
-
-                    self.bot.load_extension(f'Music_Cogs.{filename[:-3]}')
-
         os.chdir(os.path.dirname(__file__))
 
-        print('test')
-
         try:
-            os.chdir('Playlists')
+            os.chdir('../Playlists')
         except:
-            os.mkdir('Playlists')
-            os.chdir('Playlists')
+            os.mkdir('../Playlists')
+            os.chdir('../laylists')
 
     spotify = spotipy.Spotify(client_credentials_manager=SpotifyClientCredentials(MusicBotConfig.client_id, MusicBotConfig.client_secret))
     pafy.set_api_key(MusicBotConfig.ytKey)
@@ -467,80 +458,7 @@ class MainCog(commands.Cog):
 
 
 
-    @commands.command()
-    async def help(self, ctx:commands.context):
-
-        embedVar = discord.Embed(title="Commands", color=0x0e41b5)
-
-        embedVar.add_field(name='{0}play {0}p'.format(MusicBotConfig.prefix), value='Play the audio of a youtube song, playlist, or spotify playlist'.format(MusicBotConfig.prefix), inline=False)
-
-        #embedVar.add_field(name='{0}playnow {0}pn'.format(MusicBotConfig.prefix), value='Same as {0}play but plays the song instantly'.format(MusicBotConfig.prefix), inline=False)
-
-        embedVar.add_field(name='{0}skip {0}s'.format(MusicBotConfig.prefix), value='Skip current song'.format(MusicBotConfig.prefix), inline=False)
-
-        embedVar.add_field(name='{0}fs {0}fskip {0}fastskip {0}forceskip'.format(MusicBotConfig.prefix), value='Instantly skip current song, only useable by someone with a role named DJ or an admin'.format(MusicBotConfig.prefix), inline=False)
-
-        embedVar.add_field(name='{0}queue {0}q'.format(MusicBotConfig.prefix), value='View the current queue'.format(MusicBotConfig.prefix), inline=False)
-
-        embedVar.add_field(name='{0}remove {0}r'.format(MusicBotConfig.prefix), value='Remove the specified song from the queue, example: {0}remove 2'.format(MusicBotConfig.prefix), inline=False)
-
-        embedVar.add_field(name='{0}reset'.format(MusicBotConfig.prefix), value='Reset the bot if it is malfunctioning'.format(MusicBotConfig.prefix), inline=False)
-
-        embedVar.add_field(name='{0}pause'.format(MusicBotConfig.prefix), value='Pause the song'.format(MusicBotConfig.prefix), inline=False)
-
-        embedVar.add_field(name='{0}continue {0}resume'.format(MusicBotConfig.prefix), value='Resume the song'.format(MusicBotConfig.prefix), inline=False)
-
-        embedVar.add_field(name='{0}loop'.format(MusicBotConfig.prefix), value='Starts or stops looping the song'.format(MusicBotConfig.prefix), inline=False)
-
-        embedVar.add_field(name='{0}leave'.format(MusicBotConfig.prefix), value='Makes the bot leave the voice chat'.format(MusicBotConfig.prefix), inline=False)
-
-        embedVar.add_field(name='{0}shuffle'.format(MusicBotConfig.prefix), value='Shuffles the queue'.format(MusicBotConfig.prefix), inline=False)
-        
-        embedVar.add_field(name='{0}playlistplay {0}listplay'.format(MusicBotConfig.prefix), value='Use "{0}listplay `Playlist name`" to play songs from a server playlist'.format(MusicBotConfig.prefix), inline=False)
-
-        embedVar.add_field(name='{0}playlistadd {0}listadd'.format(MusicBotConfig.prefix), value='Use "{0}listadd `Playlist name`:::`Song name`" to add a song to a server playlist'.format(MusicBotConfig.prefix), inline=False)
-
-        embedVar.add_field(name='{0}playlistremove {0}listremove'.format(MusicBotConfig.prefix), value='Use "{0}listremove `Playlist name`:::`Song name`" to remove a song from a server playlist'.format(MusicBotConfig.prefix), inline=False)
-
-        embedVar.add_field(name='{0}removeplaylist {0}removelist'.format(MusicBotConfig.prefix), value='Use "{0}removelist `Playlist name`" to remove a server playlist'.format(MusicBotConfig.prefix), inline=False)
-
-        embedVar.add_field(name='{0}playlists {0}lists'.format(MusicBotConfig.prefix), value='View all server playlists'.format(MusicBotConfig.prefix), inline=False)
-
-        embedVar.add_field(name='{0}playlist {0}list'.format(MusicBotConfig.prefix), value='Use "{0}list `Playlist name`" to view all songs in specified playlist'.format(MusicBotConfig.prefix), inline=False)
-
-        embedVar.add_field(name='{0}genres {0}genre'.format(MusicBotConfig.prefix), value='Use "{0}genres `Spotify link to either artist or song`" to get a list of artist genres'.format(MusicBotConfig.prefix), inline=False)
-
-        embedVar.add_field(name='Extra stuff'.format(MusicBotConfig.prefix), value='Try making a new voice channel named "Create VC" and connecting to it'.format(MusicBotConfig.prefix), inline=False)
-
-        await ctx.send(
-            content = None,
-            embed = embedVar,
-            view=discord.ui.View().add_item(
-            
-                Button(
-                    label = "Discord",
-                    style = discord.ButtonStyle.url,
-                    url = 'https://discord.gg/qpP4CZABJx'
-                )
-
-            ).add_item(
-
-                Button(
-                    label = "Invite",
-                    style = discord.ButtonStyle.url,
-                    url = 'https://discord.com/api/oauth2/authorize?client_id=887684182975840296&permissions=0&scope=bot'
-                )
-
-            ).add_item(
-
-                Button(
-                    label = "Website",
-                    style = discord.ButtonStyle.url,
-                    url = 'https://trim-keep-354608.ew.r.appspot.com/'
-                )
-            
-            )
-        )
+    
 
 
     @commands.command()
@@ -1443,6 +1361,24 @@ class MainCog(commands.Cog):
 
         await self.playFromList()
 
+    def formatDuration(self, durationIn): # Move??
+        duration = durationIn
+        seconds = str(duration % 60)
+        if (len(seconds) == 1):
+            seconds = "0" + seconds
+
+        duration = int((duration - (duration % 60)) / 60)
+        minutes = str(duration % 60)
+        if (len(minutes) == 1):
+            minutes = "0" + minutes
+
+        duration = int((duration - (duration % 60)) / 60)
+        hours = str(duration)
+        if (len(hours) == 1):
+            hours = "0" + hours
+
+        return hours + ":" + minutes + ":" + seconds
+
     @commands.command(aliases=['p', 'play'])
     @commands.cooldown(1.0, MusicBotConfig.cooldown, commands.BucketType.guild)
     async def _play(self, ctx:commands.context):
@@ -1777,7 +1713,7 @@ class MainCog(commands.Cog):
                 ctx.message.content = re.sub(r"&list=(\S{34})&index=(.*?)", "", ctx.message.content)
 
                 html = urllib.request.urlopen("https://www.youtube.com/results?search_query=" + name)
-
+                
                 try:
 
                     video_ids[server.id].append(re.findall(r"watch\?v=(\S{11})", html.read().decode())[0])
@@ -1786,52 +1722,50 @@ class MainCog(commands.Cog):
 
                     video_ids[server.id] = [re.findall(r"watch\?v=(\S{11})", html.read().decode())[0]]
 
-                song = pafy.new(basic=False, gdata=False, url=video_ids[server.id][len(video_ids[server.id]) - 1])
-                
+                with yt_dlp.YoutubeDL({"format": "bestaudio"}) as ytdl:
+                    song:dict = ytdl.extract_info(video_ids[server.id][len(video_ids[server.id]) - 1], download=False) 
+
                 try:
 
-                    queue[server.id].append(song.title.replace('|', '\|').replace('*', '\*').replace('~', '\~').replace('_', '\_').replace('\\u0026', '&'))
+                    queue[server.id].append(song["title"].replace('|', '\|').replace('*', '\*').replace('~', '\~').replace('_', '\_').replace('\\u0026', '&'))
 
                 except:
 
-                    queue[server.id] = [song.title.replace('|', '\|').replace('*', '\*').replace('~', '\~').replace('_', '\_').replace('\\u0026', '&')]
+                    queue[server.id] = [song["title"].replace('|', '\|').replace('*', '\*').replace('~', '\~').replace('_', '\_').replace('\\u0026', '&')]
                 
-                queue[server.id][len(queue[server.id]) - 1] += '   **Duration: {}**'.format(song.duration) + datetime.datetime.now().time().strftime('%H:%M:%S')
+                queue[server.id][len(queue[server.id]) - 1] += '   **Duration: {}**'.format(self.formatDuration(song["duration"])) + datetime.datetime.now().time().strftime('%H:%M:%S')
 
-            try:
-                song = pafy.new(basic=False, gdata=False, url=video_ids[server.id][0])
+            with yt_dlp.YoutubeDL({"format": "bestaudio"}) as ytdl:
+                song:dict = ytdl.extract_info(video_ids[server.id][0], download=False) 
 
-            except OSError as e:
-                print("{}    aaaaaaa".format(e))
+                print(f"URL: \"{video_ids[server.id][0]}\"")
+                print(f"Audio URL: \"{song['url']}\"")
+                print(f"Duration: {self.formatDuration(song['duration'])}")
 
-            audio = song.getbestaudio()
+                if not errorLog[ctx.guild.id][0]:
+                    errorLog[ctx.guild.id] = ['[{}]   Used in VC despite no recorded connection'.format(datetime.datetime.now().time().strftime('%H:%M:%S'))]
 
-            #print('Audio URL: "{}"'.format(audio.url))
+                errorLog[ctx.guild.id][0] += '\n\n[{}]   Added to queue: `{}`'.format(datetime.datetime.now().time(), queue[server.id][len(queue[server.id]) - 1])
 
-            if not errorLog[ctx.guild.id][0]:
-                errorLog[ctx.guild.id] = ['[{}]   Used in VC despite no recorded connection'.format(datetime.datetime.now().time().strftime('%H:%M:%S'))]
+                if not voice_channel.is_playing():
 
-            errorLog[ctx.guild.id][0] += '\n\n[{}]   Added to queue: `{}`'.format(datetime.datetime.now().time(), queue[server.id][len(queue[server.id]) - 1])
+                    voice_channel.play(discord.FFmpegPCMAudio(song["url"], **self.ffmpegPCM_options), after=lambda e: self.stop_playing(server))
+                    
+                    await ctx.send('Now playing: `{}`'.format(re.sub(r'   \*\*Duration: .*', "", queue[server.id][0]).replace('\\', '')))
 
-            if not voice_channel.is_playing():
+                    if queue.get(server.id):
+                        if len(queue[ctx.guild.id]) >= maxSize:
+                            await ctx.send('Maximum queue size reached')
 
-                voice_channel.play(discord.FFmpegPCMAudio(audio.url, **self.ffmpegPCM_options), after=lambda e: self.stop_playing(server))
-                
-                await ctx.send('Now playing: `{}`'.format(re.sub(r'   \*\*Duration: .*', "", queue[server.id][0]).replace('\\', '')))
+                            queue = queue[:maxSize]
 
-                if queue.get(server.id):
-                    if len(queue[ctx.guild.id]) >= maxSize:
-                        await ctx.send('Maximum queue size reached')
-
-                        queue = queue[:maxSize]
-
-            else:
-                print((queue[server.id][len(queue[server.id]) - 1]).replace('\\', ''))
-                await ctx.send('Added to queue: `{}`'.format(re.sub(r'   \*\*Duration: .*', "", queue[server.id][len(queue[server.id]) - 1]).replace('\\', '')))
+                else:
+                    print((queue[server.id][len(queue[server.id]) - 1]).replace('\\', ''))
+                    await ctx.send('Added to queue: `{}`'.format(re.sub(r'   \*\*Duration: .*', "", queue[server.id][len(queue[server.id]) - 1]).replace('\\', '')))
 
     @_play.error
     async def _play_error(self, ctx:commands.context, error):
-        print('//\\\\{}//\\\\'.format(error))
+        print(f"//////{error}//////")
         print(type(error))
         if isinstance(error, commands.CommandOnCooldown):
             await ctx.send('{0}play is on cooldown to avoid slowing down bot'.format(MusicBotConfig.prefix))

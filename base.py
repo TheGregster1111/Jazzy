@@ -13,12 +13,8 @@ bot = commands.Bot(command_prefix=MusicBotConfig.prefix, intents=discordIntents)
 
 bot.remove_command("help")
 
-global extensionName
-extensionName = "MusicBot"
-
 @bot.event
 async def on_ready():
-    global extensionName
     run = True
     os.system('cls' if os.name == 'nt' else 'clear')
     if (len(sys.argv) > 1):
@@ -27,23 +23,15 @@ async def on_ready():
             return
         
         elif (sys.argv[1] == "--base" or sys.argv[1] == "-b"):
-            return
-        
-        elif (sys.argv[1] == "--file" or sys.argv[1] == "-f"):
-            if (len(sys.argv) > 2):
-                extensionName = sys.argv[2]
-            else:
-                print("Please provide a filename")
-                return
+            run = False
                 
     if (run):
-        try:
-            print(os.getcwd())
-            await bot.load_extension(extensionName)
-        except Exception as e:
-            print("Error loading " + extensionName + ":")
-            print(e)
-            pass
+        cogDir = str(os.path.dirname(__file__) + '/Cogs').replace('/', os.path.sep)
+        if (os.path.exists(cogDir)):
+            for filename in os.listdir(cogDir):
+                if filename.endswith('.py'):
+                    print(filename)
+                    await bot.load_extension(f'Cogs.{filename[:-3]}')
 
 @bot.command()
 async def restart(ctx:commands.context, *args):
@@ -54,6 +42,9 @@ async def restart(ctx:commands.context, *args):
             os.chdir(os.path.dirname(__file__))
             print(os.getcwd())
 
+            for voice_client in bot.voice_clients:
+                await voice_client.disconnect()
+
             if (len(args) > 0):
                 for arg in args:
                     print("Reload: " + arg)
@@ -63,9 +54,16 @@ async def restart(ctx:commands.context, *args):
             elif (len(list(bot.extensions.keys())) > 0):
                 loadedExtensions = list(bot.extensions.keys())
                 for extension in loadedExtensions:
-                    print("Reload: " + extension)
-                    await ctx.message.reply("Reloading: " + extension)
-                    await bot.reload_extension(extension)
+                    print("Unload: " + extension)
+                    await ctx.message.reply("Unloading: " + extension)
+                    await bot.unload_extension(extension)
+                cogDir = str(os.path.dirname(__file__) + '/Cogs').replace('/', os.path.sep)
+                if (os.path.exists(cogDir)):
+                    for filename in os.listdir(cogDir):
+                        if filename.endswith('.py'):
+                            print("Load: Cogs." + filename[:-3])
+                            await ctx.message.reply("Loading: Cogs." + filename[:-3])
+                            await bot.load_extension(f'Cogs.{filename[:-3]}')
 
             else:
                 print("Load: " + extensionName)
