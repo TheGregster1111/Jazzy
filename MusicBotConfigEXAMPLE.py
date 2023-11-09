@@ -19,6 +19,5 @@ cooldown = 0.0
 # Command line arguments
 helpMessage = """
 --help -h
---file -f <file>    File to run. If unspecified then MusicBot.py will be used.
---base -b           Run Base.py without running extension file.
+--base -b           Run Base.py without running cogs.
 """
