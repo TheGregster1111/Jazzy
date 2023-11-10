@@ -83,7 +83,7 @@ async def update(ctx:commands.context):
     if ctx.author.id == 320837660900065291:
         print("Update")
         if (config.gitSSH != ""):
-            subprocess.run(["ssh", "-i", config.gitSSH, "git", "pull"])
+            os.system("ssh -i " + config.gitSSH + " git pull")
         else:
             g = git.cmd.Git(os.path.dirname(__file__))
             g.pull()
