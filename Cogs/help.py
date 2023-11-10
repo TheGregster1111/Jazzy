@@ -78,7 +78,7 @@ class Cog(commands.Cog):
                 Button(
                     label = "Website",
                     style = discord.ButtonStyle.url,
-                    url = 'https://trim-keep-354608.ew.r.appspot.com/'
+                    url = 'https://www.susannedev.com/jazzy/'
                 )
             
             )
