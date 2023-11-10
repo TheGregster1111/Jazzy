@@ -2,7 +2,7 @@ import sys
 import discord
 from discord.ext import commands
 import os
-import MusicBotConfig
+import MusicBotConfig as config
 import requests
 import git
 import subprocess
@@ -10,7 +10,7 @@ import subprocess
 
 discordIntents = discord.Intents.all()
 
-bot = commands.Bot(command_prefix=MusicBotConfig.prefix, intents=discordIntents)
+bot = commands.Bot(command_prefix=config.prefix, intents=discordIntents)
 
 bot.remove_command("help")
 
@@ -20,7 +20,7 @@ async def on_ready():
     os.system('cls' if os.name == 'nt' else 'clear')
     if (len(sys.argv) > 1):
         if (sys.argv[1] == "--help" or sys.argv[1] == "-h"):
-            print(MusicBotConfig.helpMessage)
+            print(config.helpMessage)
             return
         
         elif (sys.argv[1] == "--base" or sys.argv[1] == "-b"):
@@ -82,8 +82,10 @@ async def update(ctx:commands.context):
     global extensionName
     if ctx.author.id == 320837660900065291:
         print("Update")
-        
-        os.chdir(os.path.dirname(__file__))
-        subprocess.call(["git", "pull"])
+        if (config.gitSSH != ""):
+            subprocess.run(["ssh", "-i", config.gitSSH, "git", "pull"])
+        else:
+            g = git.cmd.Git(os.path.dirname(__file__))
+            g.pull()
 
-bot.run(MusicBotConfig.token)
+bot.run(config.token)

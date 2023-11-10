@@ -1,5 +1,6 @@
 # Github
 gitProject = "https://raw.githubusercontent.com/[USER]/[REPO]" #GitHub MusicBot.py raw url
+gitSSH = "vultr"
 
 # Discord
 token = ""
