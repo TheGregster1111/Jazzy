@@ -5,6 +5,7 @@ import os
 import MusicBotConfig
 import requests
 import git
+import subprocess
 
 
 discordIntents = discord.Intents.all()
@@ -81,8 +82,8 @@ async def update(ctx:commands.context):
     global extensionName
     if ctx.author.id == 320837660900065291:
         print("Update")
-
-        g = git.cmd.Git(os.path.dirname(__file__))
-        g.pull()
+        
+        os.chdir(os.path.dirname(__file__))
+        subprocess.call(["git", "pull"])
 
 bot.run(MusicBotConfig.token)
