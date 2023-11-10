@@ -1,6 +1,6 @@
 # Github
-gitProject = "https://raw.githubusercontent.com/[USER]/[REPO]" #GitHub MusicBot.py raw url
-gitSSH = "vultr"
+gitProject = "https://raw.githubusercontent.com/[USER]/[REPO]" # GitHub MusicBot.py raw url
+gitSSH = "vultr" # Optional: Full path to SSH key to be used for git pull.
 
 # Discord
 token = ""
