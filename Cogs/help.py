@@ -62,7 +62,7 @@ class Cog(commands.Cog):
                 Button(
                     label = "Discord",
                     style = discord.ButtonStyle.url,
-                    url = 'https://discord.gg/qpP4CZABJx'
+                    url = "https://discord.gg/qpP4CZABJx"
                 )
 
             ).add_item(
@@ -70,7 +70,7 @@ class Cog(commands.Cog):
                 Button(
                     label = "Invite",
                     style = discord.ButtonStyle.url,
-                    url = 'https://discord.com/api/oauth2/authorize?client_id=887684182975840296&permissions=0&scope=bot'
+                    url = "https://discord.com/api/oauth2/authorize?client_id=887684182975840296&permissions=0&scope=bot"
                 )
 
             ).add_item(
@@ -78,7 +78,15 @@ class Cog(commands.Cog):
                 Button(
                     label = "Website",
                     style = discord.ButtonStyle.url,
-                    url = 'https://www.susannedev.com/jazzy/'
+                    url = "https://www.susannedev.com/jazzy/"
+                )
+            
+            ).add_item(
+
+                Button(
+                    label = "Github",
+                    style = discord.ButtonStyle.url,
+                    url = "https://github.com/TheGregster1111/Jazzy"
                 )
             
             )
